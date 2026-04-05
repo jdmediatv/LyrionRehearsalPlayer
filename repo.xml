@@ -15,7 +15,7 @@ https://raw.githubusercontent.com/jdmediatv/LyrionRehearsalPlayer/main/repo.xml
 			<changes lang="EN">Initial public release.</changes>
 			<creator>Jazzart</creator>
 			<link>https://github.com/jdmediatv/LyrionRehearsalPlayer</link>
-			<url>https://github.com/jdmediatv/LyrionRehearsalPlayer/releases/download/v1.0.0/RehearsalPlayer-1.0.0.zip</url>
+			<url>https://raw.githubusercontent.com/jdmediatv/LyrionRehearsalPlayer/main/release-assets/RehearsalPlayer-1.0.0.zip</url>
 			<sha>4cf120a0fffd72cef267e4b40cf1ff4e65a60feb</sha>
 		</plugin>
 	</plugins>
