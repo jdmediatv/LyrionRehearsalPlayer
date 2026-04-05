@@ -19,7 +19,7 @@ Native Lyrion Music Server plugin for rehearsal spaces, with playlist artwork se
 
 ### Manual install
 
-1. Download `RehearsalPlayer-1.0.0.zip`.
+1. Download `RehearsalPlayer-1.0.1.zip`.
 2. Extract it into your LMS plugins directory so the final path is:
 
    `Plugins/RehearsalPlayer/`
@@ -41,8 +41,8 @@ Native Lyrion Music Server plugin for rehearsal spaces, with playlist artwork se
 
 ## Repository Contents
 
-- `RehearsalPlayer-1.0.0.zip`: installable plugin package
-- `RehearsalPlayer-1.0.0.sha1`: SHA1 checksum for LMS repository installs
+- `RehearsalPlayer-1.0.1.zip`: installable plugin package
+- `RehearsalPlayer-1.0.1.sha1`: SHA1 checksum for LMS repository installs
 - `repo.xml`: Lyrion repository definition
 - `GITHUB_RELEASE.md`: release text and publish checklist
 
@@ -53,11 +53,11 @@ Native Lyrion Music Server plugin for rehearsal spaces, with playlist artwork se
 
    `https://raw.githubusercontent.com/jdmediatv/LyrionRehearsalPlayer/main/repo.xml`
 
-3. Create GitHub release tag `v1.0.0`.
+3. Create GitHub release tag `v1.0.1`.
 4. Upload:
 
-   - `RehearsalPlayer-1.0.0.zip`
-   - `RehearsalPlayer-1.0.0.sha1`
+   - `RehearsalPlayer-1.0.1.zip`
+   - `RehearsalPlayer-1.0.1.sha1`
 
 5. Test the release asset URL in `repo.xml`.
 6. Test the raw `repo.xml` URL from a Lyrion install.

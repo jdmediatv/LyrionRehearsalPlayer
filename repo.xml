@@ -8,15 +8,15 @@ https://raw.githubusercontent.com/jdmediatv/LyrionRehearsalPlayer/main/repo.xml
 		<title lang="EN">Jazzart Plugins</title>
 	</details>
 	<plugins>
-		<plugin name="RehearsalPlayer" version="1.0.0" minTarget="7.9" maxTarget="*">
+		<plugin name="RehearsalPlayer" version="1.0.1" minTarget="7.9" maxTarget="*">
 			<title lang="EN">Rehearsal Player</title>
 			<desc lang="EN">Dark, playlist-driven rehearsal playback with tutor/class filters, artwork playlist selection, large transport controls, and quick jump presets.</desc>
 			<category>tools</category>
-			<changes lang="EN">Initial public release.</changes>
+			<changes lang="EN">Improved responsive tile typography, prevented track grid overlap with the controls, and expanded the desktop layout to use the full viewport.</changes>
 			<creator>Jazzart</creator>
 			<link>https://github.com/jdmediatv/LyrionRehearsalPlayer</link>
-			<url>https://raw.githubusercontent.com/jdmediatv/LyrionRehearsalPlayer/main/release-assets/RehearsalPlayer-1.0.0.zip</url>
-			<sha>4cf120a0fffd72cef267e4b40cf1ff4e65a60feb</sha>
+			<url>https://raw.githubusercontent.com/jdmediatv/LyrionRehearsalPlayer/main/release-assets/RehearsalPlayer-1.0.1.zip</url>
+			<sha>56705aafb757d76b576b8055d7c706bdaae766f8</sha>
 		</plugin>
 	</plugins>
 </extensions>

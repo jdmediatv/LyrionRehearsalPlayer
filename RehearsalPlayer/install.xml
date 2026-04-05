@@ -3,7 +3,7 @@
 	<id>7C146362-6B77-423A-8D98-91C07E72FF64</id>
 	<name>PLUGIN_REHEARSAL_PLAYER</name>
 	<module>Plugins::RehearsalPlayer::Plugin</module>
-	<version>1.0.0</version>
+	<version>1.0.1</version>
 	<description>PLUGIN_REHEARSAL_PLAYER_DESC</description>
 	<playerMenu>PLUGINS</playerMenu>
 	<creator>Jazzart</creator>

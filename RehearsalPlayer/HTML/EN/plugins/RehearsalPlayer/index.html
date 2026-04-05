@@ -9,15 +9,32 @@
 <style type="text/css">
 	body,
 	#mainbody {
+		margin: 0;
 		overflow: hidden;
+		padding: 0;
+	}
+
+	#topGraphicBox {
+		display: none;
+	}
+
+	#homeMenu {
+		margin: 0;
+		padding: 0 !important;
 	}
 
 	.rehearsal-player {
 		display: grid;
 		gap: 8px;
-		grid-template-rows: auto auto auto 1fr;
-		height: calc(100vh - 138px);
+		grid-template-rows: auto auto auto minmax(0, 1fr);
+		height: var(--rehearsal-player-height, calc(100vh - 18px));
+		left: 12px;
 		min-height: 460px;
+		min-width: 0;
+		position: fixed;
+		right: 12px;
+		top: 6px;
+		z-index: 5;
 	}
 
 	.rehearsal-player__panel {
@@ -371,27 +388,37 @@
 	.rehearsal-player__tracksPanel {
 		display: grid;
 		min-height: 0;
+		overflow: hidden;
 		padding: 6px;
 	}
 
 	.rehearsal-player__tileGrid {
+		--grid-title-size: 16px;
+		--grid-meta-size: 8px;
+		--grid-tile-gap: 4px;
+		align-content: stretch;
 		display: grid;
 		gap: 6px;
+		grid-auto-flow: row;
 		height: 100%;
+		min-height: 0;
+		overflow: hidden;
 	}
 
 	.rehearsal-player__tile {
-		--tile-title-size: 13px;
-		--tile-meta-size: 10px;
-		align-content: start;
+		--tile-title-size: var(--grid-title-size);
+		--tile-meta-size: var(--grid-meta-size);
+		--tile-row-gap: var(--grid-tile-gap);
+		align-content: stretch;
 		background: linear-gradient(180deg, rgba(126, 67, 255, 0.15) 0%, rgba(32, 23, 48, 0.72) 100%);
 		border: 1px solid #7f4ce0;
 		border-radius: 10px;
 		color: #f7f2ff;
 		cursor: pointer;
 		display: grid;
-		gap: 4px;
-		grid-template-rows: auto auto auto;
+		gap: var(--tile-row-gap);
+		grid-template-rows: minmax(0, 1.8fr) minmax(0, 0.8fr) minmax(0, 0.8fr);
+		min-height: 0;
 		min-width: 0;
 		overflow: hidden;
 		padding: 7px 8px;
@@ -410,41 +437,52 @@
 
 	.rehearsal-player__tileTitle,
 	.rehearsal-player__tileLine {
-		display: block;
+		-webkit-box-orient: vertical;
+		display: -webkit-box;
+		min-height: 0;
 		overflow: hidden;
 		overflow-wrap: anywhere;
-		text-overflow: clip;
-		white-space: normal;
+		text-overflow: ellipsis;
 		word-break: break-word;
 	}
 
 	.rehearsal-player__tileTitle {
+		-webkit-line-clamp: 2;
 		font-size: var(--tile-title-size);
 		font-weight: bold;
-		line-height: 1.05;
+		line-height: 1.02;
 	}
 
 	.rehearsal-player__tileLine {
+		-webkit-line-clamp: 1;
 		color: #ccb9ee;
 		font-size: var(--tile-meta-size);
-		line-height: 1.05;
+		line-height: 1;
 	}
 
-	.rehearsal-player__tileGrid.is-compact .rehearsal-player__tile {
-		--tile-title-size: 12px;
-		--tile-meta-size: 9px;
+	.rehearsal-player__tileGrid.is-compact {
+		--grid-title-size: 14px;
+		--grid-meta-size: 7px;
+		--grid-tile-gap: 3px;
+	}
+
+	.rehearsal-player__tileGrid.is-ultra {
+		--grid-title-size: 12px;
+		--grid-meta-size: 6px;
+		--grid-tile-gap: 3px;
 	}
 
 	.rehearsal-player__tileGrid.is-ultra .rehearsal-player__tile {
-		--tile-title-size: 10px;
-		--tile-meta-size: 8px;
-		padding: 7px 8px;
+		padding: 6px 7px;
+	}
+
+	.rehearsal-player__tileGrid.is-micro {
+		--grid-title-size: 10px;
+		--grid-meta-size: 5px;
+		--grid-tile-gap: 2px;
 	}
 
 	.rehearsal-player__tileGrid.is-micro .rehearsal-player__tile {
-		--tile-title-size: 9px;
-		--tile-meta-size: 7px;
-		gap: 2px;
 		padding: 4px 5px;
 	}
 
@@ -464,7 +502,11 @@
 	@media (max-width: 1080px) {
 		.rehearsal-player {
 			height: auto;
+			left: auto;
 			min-height: 0;
+			position: static;
+			right: auto;
+			top: auto;
 		}
 
 		body,
@@ -653,17 +695,19 @@
 			.replace(/"/g, '&quot;');
 	}
 
-	function showMessage(message, kind) {
+		function showMessage(message, kind) {
 		elements.message.className = 'rehearsal-player__panel rehearsal-player__message';
 		elements.message.textContent = message || '';
 
 		if (!message) {
 			elements.message.style.display = 'none';
+			refreshTrackLayout();
 			return;
 		}
 
 		elements.message.className += kind === 'error' ? ' is-error' : ' is-info';
 		elements.message.style.display = 'block';
+		refreshTrackLayout();
 	}
 
 	function formatTime(totalSeconds) {
@@ -683,6 +727,17 @@
 
 	function selectedPlayer() {
 		return selectedPlayerId || '';
+	}
+
+	function syncAppHeight() {
+		app.style.removeProperty('--rehearsal-player-height');
+
+		if (window.innerWidth <= 1080) {
+			return;
+		}
+
+		var available = Math.max(460, Math.floor(window.innerHeight - 18));
+		app.style.setProperty('--rehearsal-player-height', available + 'px');
 	}
 
 	function currentPlayerName() {
@@ -906,6 +961,7 @@
 
 		if (!tracks.length) {
 			elements.tracks.innerHTML = '<div class="rehearsal-player__empty">' + escapeText(text.noTracks) + '</div>';
+			refreshTrackLayout(0);
 			return;
 		}
 
@@ -938,18 +994,24 @@
 			});
 			}
 
-			layoutTrackGrid(tracks.length);
-			window.requestAnimationFrame(fitTileText);
+			refreshTrackLayout(tracks.length);
 		}
 
 		function layoutTrackGrid(count) {
+			elements.tracks.style.removeProperty('gridTemplateColumns');
+			elements.tracks.style.removeProperty('gridAutoRows');
+			elements.tracks.style.removeProperty('--grid-title-size');
+			elements.tracks.style.removeProperty('--grid-meta-size');
+			elements.tracks.style.removeProperty('--grid-tile-gap');
+
 			if (!count) {
 				return;
-		}
+			}
 
 			var panelRect = elements.tracksPanel.getBoundingClientRect();
-			var width = Math.max(240, Math.floor(panelRect.width - 4));
-			var height = Math.max(140, Math.floor(panelRect.height - 12));
+			var panelStyle = window.getComputedStyle(elements.tracksPanel);
+			var width = Math.max(240, Math.floor(panelRect.width - parseFloat(panelStyle.paddingLeft || 0) - parseFloat(panelStyle.paddingRight || 0)));
+			var height = Math.max(140, Math.floor(panelRect.height - parseFloat(panelStyle.paddingTop || 0) - parseFloat(panelStyle.paddingBottom || 0)));
 			var gap = 6;
 			var best = null;
 			var maxRows = Math.min(Math.max(4, count), 20);
@@ -985,6 +1047,9 @@
 
 		elements.tracks.style.gridTemplateColumns = 'repeat(' + best.cols + ', minmax(0, 1fr))';
 		elements.tracks.style.gridAutoRows = best.tileHeight + 'px';
+		elements.tracks.style.setProperty('--grid-title-size', Math.max(12, Math.min(22, Math.floor(Math.min(best.tileHeight * 0.42, best.tileWidth * 0.22)))) + 'px');
+		elements.tracks.style.setProperty('--grid-meta-size', Math.max(5, Math.min(11, Math.floor(Math.min(best.tileHeight * 0.2, best.tileWidth * 0.11)))) + 'px');
+		elements.tracks.style.setProperty('--grid-tile-gap', (best.tileHeight <= 58 ? 2 : best.tileHeight <= 76 ? 3 : 4) + 'px');
 
 		if (best.tileHeight <= 34 || best.tileWidth <= 68) {
 			elements.tracks.classList.add('is-micro');
@@ -995,6 +1060,14 @@
 			else if (best.tileHeight <= 72 || best.tileWidth <= 112) {
 				elements.tracks.classList.add('is-compact');
 			}
+		}
+
+		function refreshTrackLayout(count) {
+			window.requestAnimationFrame(function () {
+				syncAppHeight();
+				layoutTrackGrid(typeof count === 'number' ? count : elements.tracks.querySelectorAll('.rehearsal-player__tile').length);
+				fitTileText();
+			});
 		}
 
 		function fitTileText() {
@@ -1011,16 +1084,25 @@
 
 				tile.style.removeProperty('--tile-title-size');
 				tile.style.removeProperty('--tile-meta-size');
+				tile.style.removeProperty('--tile-row-gap');
 
-				var titleSize = parseFloat(window.getComputedStyle(title).fontSize);
-				var metaSize = parseFloat(window.getComputedStyle(meta).fontSize);
+				var rect = tile.getBoundingClientRect();
+				var titleSize = Math.max(12, Math.min(24, Math.floor(Math.min(rect.height * 0.38, rect.width * 0.2))));
+				var metaSize = Math.max(5, Math.min(11, Math.floor(titleSize * 0.5)));
+				var rowGap = rect.height <= 58 ? 2 : rect.height <= 78 ? 3 : 4;
 				var attempts = 0;
 
-				while (tile.scrollHeight > tile.clientHeight && attempts < 10) {
-					titleSize = Math.max(7, titleSize - 0.7);
-					metaSize = Math.max(6, metaSize - 0.55);
+				tile.style.setProperty('--tile-title-size', titleSize + 'px');
+				tile.style.setProperty('--tile-meta-size', metaSize + 'px');
+				tile.style.setProperty('--tile-row-gap', rowGap + 'px');
+
+				while (tile.scrollHeight > tile.clientHeight + 1 && attempts < 16) {
+					titleSize = Math.max(9, titleSize - 0.7);
+					metaSize = Math.max(5, Math.min(metaSize - 0.35, titleSize * 0.5));
+					rowGap = Math.max(1, rowGap - 0.2);
 					tile.style.setProperty('--tile-title-size', titleSize + 'px');
 					tile.style.setProperty('--tile-meta-size', metaSize + 'px');
+					tile.style.setProperty('--tile-row-gap', rowGap + 'px');
 					attempts++;
 				}
 			}
@@ -1270,7 +1352,7 @@
 		});
 
 		window.addEventListener('resize', function () {
-			renderTracks();
+			refreshTrackLayout();
 		});
 
 	updateStatus({
@@ -1283,6 +1365,7 @@
 		volume: 50
 	});
 	setControlsEnabled(false);
+	syncAppHeight();
 	startStatusPolling();
 	loadState();
 })();
