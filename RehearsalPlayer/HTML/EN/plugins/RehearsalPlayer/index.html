@@ -1,0 +1,1291 @@
+[%- pagetitle = 'PLUGIN_REHEARSAL_PLAYER' | string -%]
+[%- pwd_list = BLOCK -%]/
+	<a href="[% webroot %][% rehearsalPlayerSlugUrl %][% IF player %]?player=[% player | uri %][% END %]">
+		[% "PLUGIN_REHEARSAL_PLAYER" | string %]
+	</a>
+[% END -%]
+[%- PROCESS pageheader.html %]
+
+<style type="text/css">
+	body,
+	#mainbody {
+		overflow: hidden;
+	}
+
+	.rehearsal-player {
+		display: grid;
+		gap: 8px;
+		grid-template-rows: auto auto auto 1fr;
+		height: calc(100vh - 138px);
+		min-height: 460px;
+	}
+
+	.rehearsal-player__panel {
+		background: linear-gradient(180deg, #15111f 0%, #0d0a15 100%);
+		border: 1px solid #6e3fd1;
+		border-radius: 16px;
+		box-shadow: inset 0 0 0 1px rgba(173, 112, 255, 0.15), 0 10px 30px rgba(0, 0, 0, 0.28);
+		box-sizing: border-box;
+		color: #f3eeff;
+		padding: 8px 10px;
+	}
+
+	.rehearsal-player__panel--tight {
+		padding: 6px 8px;
+	}
+
+	.rehearsal-player__title {
+		color: #d4b8ff;
+		font-size: 10px;
+		font-weight: bold;
+		letter-spacing: 0.08em;
+		margin-bottom: 6px;
+		text-transform: uppercase;
+	}
+
+	.rehearsal-player__controls {
+		display: grid;
+		gap: 8px;
+		grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+		grid-template-rows: auto auto;
+		min-height: 0;
+	}
+
+	.rehearsal-player__playerPanel {
+		grid-column: 1;
+		grid-row: 1;
+	}
+
+	.rehearsal-player__filtersPanel {
+		grid-column: 1;
+		grid-row: 2;
+	}
+
+	.rehearsal-player__transportPanel {
+		align-content: start;
+		display: grid;
+		gap: 10px;
+		grid-column: 2;
+		grid-row: 1 / span 2;
+	}
+
+	.rehearsal-player__playerStack {
+		display: grid;
+		gap: 8px;
+	}
+
+	.rehearsal-player__playlistStrip,
+	.rehearsal-player__pillWrap,
+	.rehearsal-player__transport,
+	.rehearsal-player__transportSecondary {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px;
+	}
+
+	.rehearsal-player__playlistButton {
+		align-items: center;
+		background: #120e1d;
+		border: 1px solid #7f4ce0;
+		border-radius: 10px;
+		color: #f9f6ff;
+		cursor: pointer;
+		display: grid;
+		gap: 4px;
+		grid-template-columns: 42px minmax(0, 1fr);
+		min-width: 126px;
+		padding: 4px 5px;
+		text-align: left;
+	}
+
+	.rehearsal-player__playlistButton.is-active {
+		background: linear-gradient(180deg, #2b1747 0%, #1c122d 100%);
+		border-color: #c285ff;
+		box-shadow: 0 0 0 1px rgba(194, 133, 255, 0.28);
+	}
+
+	.rehearsal-player__playlistButton img {
+		border-radius: 7px;
+		display: block;
+		height: 42px;
+		object-fit: cover;
+		width: 42px;
+	}
+
+	.rehearsal-player__playlistLabel {
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+		min-width: 0;
+	}
+
+	.rehearsal-player__playlistName {
+		font-size: 11px;
+		font-weight: bold;
+		line-height: 1.2;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.rehearsal-player__playlistMeta,
+	.rehearsal-player__subtle {
+		color: #b7a6d7;
+		font-size: 10px;
+	}
+
+	.rehearsal-player__field {
+		display: grid;
+		gap: 4px;
+	}
+
+	.rehearsal-player__field label {
+		color: #cdb7f7;
+		font-size: 9px;
+		font-weight: bold;
+		letter-spacing: 0.07em;
+		text-transform: uppercase;
+	}
+
+	.rehearsal-player__field select {
+		background: #0b0812;
+		border: 1px solid #6e3fd1;
+		border-radius: 9px;
+		box-sizing: border-box;
+		color: #f3eeff;
+		height: 30px;
+		padding: 4px 8px;
+		width: 100%;
+	}
+
+	.rehearsal-player__status {
+		display: grid;
+		gap: 4px;
+		min-width: 0;
+	}
+
+	.rehearsal-player__statusMain {
+		font-size: 16px;
+		font-weight: bold;
+		line-height: 1.2;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.rehearsal-player__statusMeta {
+		color: #b7a6d7;
+		font-size: 10px;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.rehearsal-player__transportPrimary {
+		display: grid;
+		gap: 10px;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.rehearsal-player__transportRows {
+		display: grid;
+		gap: 6px;
+	}
+
+	.rehearsal-player__transportSecondary {
+		display: grid;
+		gap: 6px;
+		grid-template-columns: repeat(8, minmax(0, 1fr));
+	}
+
+	.rehearsal-player__button,
+	.rehearsal-player__pill {
+		background: #1a1325;
+		border: 1px solid #7f4ce0;
+		border-radius: 999px;
+		color: #f7f2ff;
+		cursor: pointer;
+		font-size: 10px;
+		font-weight: bold;
+		padding: 6px 9px;
+		white-space: nowrap;
+	}
+
+	.rehearsal-player__transportSecondary .rehearsal-player__button {
+		font-size: 9px;
+		min-height: 40px;
+		padding: 6px 2px;
+		width: 100%;
+	}
+
+	.rehearsal-player__volume {
+		display: grid;
+		gap: 6px;
+	}
+
+	.rehearsal-player__volumeLabel {
+		color: #d4b8ff;
+		font-size: 9px;
+		font-weight: bold;
+		letter-spacing: 0.07em;
+		text-transform: uppercase;
+	}
+
+	.rehearsal-player__volumeRow {
+		align-items: center;
+		display: grid;
+		gap: 10px;
+		grid-template-columns: minmax(0, 1fr) auto;
+	}
+
+	.rehearsal-player__volumeSlider {
+		accent-color: #8f57ff;
+		width: 100%;
+	}
+
+	.rehearsal-player__volumeValue {
+		color: #f7f2ff;
+		font-size: 11px;
+		font-weight: bold;
+		min-width: 42px;
+		text-align: right;
+	}
+
+	.rehearsal-player__button.is-primary {
+		background: linear-gradient(180deg, #7e43ff 0%, #602fd1 100%);
+		border-color: #cb8cff;
+	}
+
+	.rehearsal-player__iconButton {
+		align-items: center;
+		display: grid;
+		gap: 10px;
+		grid-template-rows: auto auto;
+		justify-items: center;
+		min-height: 110px;
+		padding: 14px 16px;
+	}
+
+	.rehearsal-player__iconButton.is-active {
+		box-shadow: 0 0 0 1px rgba(208, 151, 255, 0.22);
+	}
+
+	.rehearsal-player__iconLabel {
+		font-size: 12px;
+		font-weight: bold;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+	}
+
+	.rehearsal-player__icon {
+		color: currentColor;
+		display: block;
+		position: relative;
+	}
+
+	.rehearsal-player__icon--play {
+		border-bottom: 16px solid transparent;
+		border-left: 26px solid currentColor;
+		border-top: 16px solid transparent;
+		height: 0;
+		margin-left: 6px;
+		width: 0;
+	}
+
+	.rehearsal-player__icon--pause {
+		height: 32px;
+		width: 24px;
+	}
+
+	.rehearsal-player__icon--pause::before,
+	.rehearsal-player__icon--pause::after {
+		background: currentColor;
+		border-radius: 2px;
+		content: '';
+		height: 32px;
+		position: absolute;
+		top: 0;
+		width: 8px;
+	}
+
+	.rehearsal-player__icon--pause::before {
+		left: 0;
+	}
+
+	.rehearsal-player__icon--pause::after {
+		right: 0;
+	}
+
+	.rehearsal-player__button:disabled {
+		cursor: default;
+		opacity: 0.45;
+	}
+
+	.rehearsal-player__pill.is-active {
+		background: #7f4ce0;
+		border-color: #d8a7ff;
+		color: #12081e;
+	}
+
+	.rehearsal-player__filters {
+		display: grid;
+		gap: 6px;
+	}
+
+	.rehearsal-player__filterGroup {
+		display: grid;
+		gap: 4px;
+	}
+
+	.rehearsal-player__filterLabel {
+		color: #d4b8ff;
+		font-size: 9px;
+		font-weight: bold;
+		letter-spacing: 0.07em;
+		text-transform: uppercase;
+	}
+
+	.rehearsal-player__message {
+		display: none;
+		font-size: 12px;
+		padding: 10px 12px;
+	}
+
+	.rehearsal-player__message.is-info,
+	.rehearsal-player__message.is-error {
+		display: block;
+	}
+
+	.rehearsal-player__message.is-info {
+		background: #141c33;
+		border-color: #4b77dd;
+		color: #d8e6ff;
+	}
+
+	.rehearsal-player__message.is-error {
+		background: #2a1117;
+		border-color: #b44b6b;
+		color: #ffd2df;
+	}
+
+	.rehearsal-player__tracksPanel {
+		display: grid;
+		min-height: 0;
+		padding: 6px;
+	}
+
+	.rehearsal-player__tileGrid {
+		display: grid;
+		gap: 6px;
+		height: 100%;
+	}
+
+	.rehearsal-player__tile {
+		--tile-title-size: 13px;
+		--tile-meta-size: 10px;
+		align-content: start;
+		background: linear-gradient(180deg, rgba(126, 67, 255, 0.15) 0%, rgba(32, 23, 48, 0.72) 100%);
+		border: 1px solid #7f4ce0;
+		border-radius: 10px;
+		color: #f7f2ff;
+		cursor: pointer;
+		display: grid;
+		gap: 4px;
+		grid-template-rows: auto auto auto;
+		min-width: 0;
+		overflow: hidden;
+		padding: 7px 8px;
+		text-align: left;
+	}
+
+	.rehearsal-player__tile:hover {
+		border-color: #d097ff;
+		box-shadow: 0 0 0 1px rgba(208, 151, 255, 0.18);
+	}
+
+	.rehearsal-player__tile.is-active {
+		background: linear-gradient(180deg, rgba(126, 67, 255, 0.42) 0%, rgba(55, 31, 102, 0.92) 100%);
+		border-color: #ecb0ff;
+	}
+
+	.rehearsal-player__tileTitle,
+	.rehearsal-player__tileLine {
+		display: block;
+		overflow: hidden;
+		overflow-wrap: anywhere;
+		text-overflow: clip;
+		white-space: normal;
+		word-break: break-word;
+	}
+
+	.rehearsal-player__tileTitle {
+		font-size: var(--tile-title-size);
+		font-weight: bold;
+		line-height: 1.05;
+	}
+
+	.rehearsal-player__tileLine {
+		color: #ccb9ee;
+		font-size: var(--tile-meta-size);
+		line-height: 1.05;
+	}
+
+	.rehearsal-player__tileGrid.is-compact .rehearsal-player__tile {
+		--tile-title-size: 12px;
+		--tile-meta-size: 9px;
+	}
+
+	.rehearsal-player__tileGrid.is-ultra .rehearsal-player__tile {
+		--tile-title-size: 10px;
+		--tile-meta-size: 8px;
+		padding: 7px 8px;
+	}
+
+	.rehearsal-player__tileGrid.is-micro .rehearsal-player__tile {
+		--tile-title-size: 9px;
+		--tile-meta-size: 7px;
+		gap: 2px;
+		padding: 4px 5px;
+	}
+
+	.rehearsal-player__empty {
+		align-items: center;
+		background: rgba(126, 67, 255, 0.08);
+		border: 1px dashed #7f4ce0;
+		border-radius: 14px;
+		color: #d5c8ee;
+		display: flex;
+		font-size: 14px;
+		justify-content: center;
+		padding: 24px;
+		text-align: center;
+	}
+
+	@media (max-width: 1080px) {
+		.rehearsal-player {
+			height: auto;
+			min-height: 0;
+		}
+
+		body,
+		#mainbody {
+			overflow: auto;
+		}
+
+		.rehearsal-player__controls {
+			grid-template-columns: 1fr;
+			grid-template-rows: auto auto auto;
+		}
+
+		.rehearsal-player__playerPanel,
+		.rehearsal-player__filtersPanel,
+		.rehearsal-player__transportPanel {
+			grid-column: 1;
+			grid-row: auto;
+		}
+
+		.rehearsal-player__transportPrimary,
+		.rehearsal-player__transportSecondary {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+
+		.rehearsal-player__tracksPanel {
+			min-height: 460px;
+		}
+	}
+</style>
+
+<div id="rehearsal-player-app"
+	class="rehearsal-player"
+	data-api-url="[% webroot %][% rehearsalPlayerApiUrl %]"
+	data-jsonrpc-url="[% webroot %]jsonrpc.js"
+	data-initial-player="[% player | html %]">
+
+	<div class="rehearsal-player__panel rehearsal-player__panel--tight">
+		<div class="rehearsal-player__title">[% "PLUGIN_REHEARSAL_PLAYER_PLAYLISTS" | string %]</div>
+		<div id="rp-playlists" class="rehearsal-player__playlistStrip"></div>
+	</div>
+
+	<div class="rehearsal-player__controls">
+		<div class="rehearsal-player__panel rehearsal-player__panel--tight rehearsal-player__playerPanel">
+			<div class="rehearsal-player__title">[% "PLUGIN_REHEARSAL_PLAYER_NOW_PLAYING" | string %]</div>
+			<div class="rehearsal-player__playerStack">
+				<div class="rehearsal-player__field">
+					<label for="rp-player">[% "PLUGIN_REHEARSAL_PLAYER_PLAYER" | string %]</label>
+					<select id="rp-player"></select>
+				</div>
+				<div class="rehearsal-player__status">
+					<div id="rp-now-playing" class="rehearsal-player__statusMain">[% "PLUGIN_REHEARSAL_PLAYER_NOTHING_PLAYING" | string %]</div>
+					<div id="rp-status-meta" class="rehearsal-player__statusMeta">[% "PLUGIN_REHEARSAL_PLAYER_STATUS_STOPPED" | string %] | 00:00 / 00:00</div>
+					<div id="rp-track-summary" class="rehearsal-player__statusMeta"></div>
+				</div>
+			</div>
+		</div>
+
+		<div class="rehearsal-player__panel rehearsal-player__panel--tight rehearsal-player__filtersPanel">
+			<div class="rehearsal-player__filters">
+				<div class="rehearsal-player__filterGroup">
+					<div class="rehearsal-player__filterLabel">[% "PLUGIN_REHEARSAL_PLAYER_COMPOSER" | string %]</div>
+					<div id="rp-composer-filters" class="rehearsal-player__pillWrap"></div>
+				</div>
+				<div class="rehearsal-player__filterGroup">
+					<div class="rehearsal-player__filterLabel">[% "PLUGIN_REHEARSAL_PLAYER_COMMENT" | string %]</div>
+					<div id="rp-comment-filters" class="rehearsal-player__pillWrap"></div>
+				</div>
+			</div>
+		</div>
+
+		<div class="rehearsal-player__panel rehearsal-player__panel--tight rehearsal-player__transportPanel">
+			<div class="rehearsal-player__title">[% "PLUGIN_REHEARSAL_PLAYER_CONTROLS" | string %]</div>
+			<div class="rehearsal-player__transportPrimary">
+				<button class="rehearsal-player__button rehearsal-player__iconButton is-primary" id="rp-play" type="button" aria-label="[% "PLUGIN_REHEARSAL_PLAYER_PLAY" | string %]">
+					<span class="rehearsal-player__icon rehearsal-player__icon--play"></span>
+					<span class="rehearsal-player__iconLabel">[% "PLUGIN_REHEARSAL_PLAYER_PLAY" | string %]</span>
+				</button>
+				<button class="rehearsal-player__button rehearsal-player__iconButton" id="rp-pause" type="button" aria-label="[% "PLUGIN_REHEARSAL_PLAYER_PAUSE" | string %]">
+					<span class="rehearsal-player__icon rehearsal-player__icon--pause"></span>
+					<span class="rehearsal-player__iconLabel">[% "PLUGIN_REHEARSAL_PLAYER_PAUSE" | string %]</span>
+				</button>
+			</div>
+			<div class="rehearsal-player__transportRows">
+				<div class="rehearsal-player__transportSecondary">
+					<button class="rehearsal-player__button" type="button" data-jump="-30">-30</button>
+					<button class="rehearsal-player__button" type="button" data-jump="-15">-15</button>
+					<button class="rehearsal-player__button" type="button" data-jump="-10">-10</button>
+					<button class="rehearsal-player__button" type="button" data-jump="-5">-5</button>
+					<button class="rehearsal-player__button" type="button" data-jump="5">+5</button>
+					<button class="rehearsal-player__button" type="button" data-jump="10">+10</button>
+					<button class="rehearsal-player__button" type="button" data-jump="15">+15</button>
+					<button class="rehearsal-player__button" type="button" data-jump="30">+30</button>
+				</div>
+				<div class="rehearsal-player__transportSecondary">
+					<button class="rehearsal-player__button" type="button" data-fraction="0">0%</button>
+					<button class="rehearsal-player__button" type="button" data-fraction="0.15">15%</button>
+					<button class="rehearsal-player__button" type="button" data-fraction="0.25">25%</button>
+					<button class="rehearsal-player__button" type="button" data-fraction="0.35">35%</button>
+					<button class="rehearsal-player__button" type="button" data-fraction="0.5">50%</button>
+					<button class="rehearsal-player__button" type="button" data-fraction="0.65">65%</button>
+					<button class="rehearsal-player__button" type="button" data-fraction="0.75">75%</button>
+					<button class="rehearsal-player__button" type="button" data-fraction="0.85">85%</button>
+				</div>
+			</div>
+			<div class="rehearsal-player__volume">
+				<div class="rehearsal-player__volumeLabel">[% "PLUGIN_REHEARSAL_PLAYER_VOLUME" | string %]</div>
+				<div class="rehearsal-player__volumeRow">
+					<input class="rehearsal-player__volumeSlider" id="rp-volume" type="range" min="0" max="100" step="1" value="50" />
+					<div class="rehearsal-player__volumeValue" id="rp-volume-value">50%</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div id="rp-message" class="rehearsal-player__panel rehearsal-player__message"></div>
+
+	<div class="rehearsal-player__panel rehearsal-player__tracksPanel" id="rp-tracks-panel">
+		<div id="rp-tracks" class="rehearsal-player__tileGrid"></div>
+	</div>
+</div>
+
+<script type="text/javascript">
+(function () {
+	var app = document.getElementById('rehearsal-player-app');
+	if (!app) {
+		return;
+	}
+
+	var text = {
+		noPlayers: "[% "PLUGIN_REHEARSAL_PLAYER_NO_PLAYERS" | string | html | replace('"', '\"') %]",
+		noTracks: "[% "PLUGIN_REHEARSAL_PLAYER_NO_TRACKS" | string | html | replace('"', '\"') %]",
+		noPlaylists: "[% "PLUGIN_REHEARSAL_PLAYER_NO_PLAYLISTS" | string | html | replace('"', '\"') %]",
+		needPlayer: "[% "PLUGIN_REHEARSAL_PLAYER_NEED_PLAYER" | string | html | replace('"', '\"') %]",
+		needDuration: "[% "PLUGIN_REHEARSAL_PLAYER_NEED_DURATION" | string | html | replace('"', '\"') %]",
+		nothingPlaying: "[% "PLUGIN_REHEARSAL_PLAYER_NOTHING_PLAYING" | string | html | replace('"', '\"') %]",
+		play: "[% "PLUGIN_REHEARSAL_PLAYER_PLAY" | string | html | replace('"', '\"') %]",
+		pause: "[% "PLUGIN_REHEARSAL_PLAYER_PAUSE" | string | html | replace('"', '\"') %]",
+		loading: "[% "PLUGIN_REHEARSAL_PLAYER_LOADING" | string | html | replace('"', '\"') %]",
+		statusStopped: "[% "PLUGIN_REHEARSAL_PLAYER_STATUS_STOPPED" | string | html | replace('"', '\"') %]",
+		statusPaused: "[% "PLUGIN_REHEARSAL_PLAYER_STATUS_PAUSED" | string | html | replace('"', '\"') %]",
+		statusPlaying: "[% "PLUGIN_REHEARSAL_PLAYER_STATUS_PLAYING" | string | html | replace('"', '\"') %]",
+		allComposers: "[% "PLUGIN_REHEARSAL_PLAYER_ALL_COMPOSERS" | string | html | replace('"', '\"') %]",
+		allComments: "[% "PLUGIN_REHEARSAL_PLAYER_ALL_COMMENTS" | string | html | replace('"', '\"') %]",
+		noComposerFilters: "[% "PLUGIN_REHEARSAL_PLAYER_NO_COMPOSER_FILTERS" | string | html | replace('"', '\"') %]",
+		noCommentFilters: "[% "PLUGIN_REHEARSAL_PLAYER_NO_COMMENT_FILTERS" | string | html | replace('"', '\"') %]",
+		tracks: "[% "PLUGIN_REHEARSAL_PLAYER_TRACKS" | string | html | replace('"', '\"') %]",
+		playlistTracks: "[% "PLUGIN_REHEARSAL_PLAYER_PLAYLIST_TRACKS" | string | html | replace('"', '\"') %]",
+		unknownTrack: "[% "PLUGIN_REHEARSAL_PLAYER_UNKNOWN_TRACK" | string | html | replace('"', '\"') %]"
+	};
+
+		var elements = {
+			playlists: document.getElementById('rp-playlists'),
+			player: document.getElementById('rp-player'),
+			nowPlaying: document.getElementById('rp-now-playing'),
+			statusMeta: document.getElementById('rp-status-meta'),
+			trackSummary: document.getElementById('rp-track-summary'),
+			composerFilters: document.getElementById('rp-composer-filters'),
+			commentFilters: document.getElementById('rp-comment-filters'),
+			message: document.getElementById('rp-message'),
+			tracksPanel: document.getElementById('rp-tracks-panel'),
+			tracks: document.getElementById('rp-tracks'),
+			play: document.getElementById('rp-play'),
+			pause: document.getElementById('rp-pause'),
+			volume: document.getElementById('rp-volume'),
+			volumeValue: document.getElementById('rp-volume-value')
+		};
+		var jumpButtons = app.querySelectorAll('[data-jump]');
+		var fractionButtons = app.querySelectorAll('[data-fraction]');
+
+	var apiUrl = app.getAttribute('data-api-url');
+	var jsonrpcUrl = app.getAttribute('data-jsonrpc-url');
+	var selectedPlayerId = app.getAttribute('data-initial-player') || '';
+	var selectedPlaylistId = '';
+		var selectedComposer = '';
+		var selectedComment = '';
+		var statusTimer = null;
+		var volumeTimer = null;
+		var currentStatus = { mode: 'stop', time: 0, duration: 0, currentId: '', currentUrl: '', volume: 50 };
+		var state = { playlists: [], tracks: [], filters: { composers: [], comments: [] }, players: [] };
+
+	function escapeText(value) {
+		return String(value || '')
+			.replace(/&/g, '&amp;')
+			.replace(/</g, '&lt;')
+			.replace(/>/g, '&gt;')
+			.replace(/"/g, '&quot;');
+	}
+
+	function showMessage(message, kind) {
+		elements.message.className = 'rehearsal-player__panel rehearsal-player__message';
+		elements.message.textContent = message || '';
+
+		if (!message) {
+			elements.message.style.display = 'none';
+			return;
+		}
+
+		elements.message.className += kind === 'error' ? ' is-error' : ' is-info';
+		elements.message.style.display = 'block';
+	}
+
+	function formatTime(totalSeconds) {
+		var seconds = Math.max(0, Math.floor(totalSeconds || 0));
+		var hours = Math.floor(seconds / 3600);
+		var minutes = Math.floor((seconds % 3600) / 60);
+		var remainder = seconds % 60;
+		var paddedMinutes = minutes < 10 ? '0' + minutes : String(minutes);
+		var paddedSeconds = remainder < 10 ? '0' + remainder : String(remainder);
+
+		if (hours > 0) {
+			return hours + ':' + paddedMinutes + ':' + paddedSeconds;
+		}
+
+		return paddedMinutes + ':' + paddedSeconds;
+	}
+
+	function selectedPlayer() {
+		return selectedPlayerId || '';
+	}
+
+	function currentPlayerName() {
+		for (var i = 0; i < state.players.length; i++) {
+			if (state.players[i].id === selectedPlayer()) {
+				return state.players[i].name;
+			}
+		}
+
+		return text.noPlayers;
+	}
+
+	function selectedPlaylist() {
+		for (var i = 0; i < state.playlists.length; i++) {
+			if (state.playlists[i].id === selectedPlaylistId) {
+				return state.playlists[i];
+			}
+		}
+
+		return null;
+	}
+
+	function filteredTracks() {
+		var list = [];
+
+		for (var i = 0; i < state.tracks.length; i++) {
+			var track = state.tracks[i];
+			if (selectedComposer && track.composer !== selectedComposer) {
+				continue;
+			}
+			if (selectedComment && track.comment !== selectedComment) {
+				continue;
+			}
+			list.push(track);
+		}
+
+		return list;
+	}
+
+		function setControlsEnabled(enabled) {
+			var buttons = [
+				elements.play,
+				elements.pause
+			];
+
+			for (var i = 0; i < buttons.length; i++) {
+				buttons[i].disabled = !enabled;
+			}
+
+			for (var j = 0; j < jumpButtons.length; j++) {
+				jumpButtons[j].disabled = !enabled;
+			}
+
+			for (var k = 0; k < fractionButtons.length; k++) {
+				fractionButtons[k].disabled = !enabled;
+			}
+
+			elements.volume.disabled = !enabled;
+		}
+
+		function syncVolume(value) {
+			var safe = Math.max(0, Math.min(100, Math.round(Number(value))));
+			if (Number.isNaN(safe)) {
+				safe = 50;
+			}
+
+			currentStatus.volume = safe;
+			elements.volumeValue.textContent = safe + '%';
+
+			if (document.activeElement !== elements.volume) {
+				elements.volume.value = String(safe);
+			}
+		}
+
+		function setVolume(value) {
+			if (!selectedPlayer()) {
+				showMessage(text.needPlayer, 'error');
+				return;
+			}
+
+			var safe = Math.max(0, Math.min(100, Math.round(Number(value))));
+			if (Number.isNaN(safe)) {
+				return;
+			}
+
+			syncVolume(safe);
+
+			if (volumeTimer) {
+				window.clearTimeout(volumeTimer);
+			}
+
+			volumeTimer = window.setTimeout(function () {
+				rpc(['mixer', 'volume', safe]).then(function () {
+					setTimeout(refreshStatus, 120);
+				});
+			}, 90);
+		}
+
+	function renderPlayers() {
+		elements.player.innerHTML = '';
+
+		if (!state.players.length) {
+			var emptyOption = document.createElement('option');
+			emptyOption.value = '';
+			emptyOption.textContent = text.noPlayers;
+			elements.player.appendChild(emptyOption);
+			selectedPlayerId = '';
+			setControlsEnabled(false);
+			return;
+		}
+
+		var found = false;
+		for (var i = 0; i < state.players.length; i++) {
+			var player = state.players[i];
+			var option = document.createElement('option');
+			option.value = player.id;
+			option.textContent = player.name;
+			elements.player.appendChild(option);
+			if (player.id === selectedPlayerId) {
+				found = true;
+			}
+		}
+
+		if (!found) {
+			selectedPlayerId = state.selected_player_id || state.players[0].id;
+		}
+
+		elements.player.value = selectedPlayerId;
+		setControlsEnabled(true);
+	}
+
+	function renderPlaylists() {
+		if (!state.playlists.length) {
+			elements.playlists.innerHTML = '<div class="rehearsal-player__empty">' + escapeText(text.noPlaylists) + '</div>';
+			return;
+		}
+
+		var html = [];
+		for (var i = 0; i < state.playlists.length; i++) {
+			var playlist = state.playlists[i];
+			var active = playlist.id === selectedPlaylistId ? ' is-active' : '';
+
+			html.push(
+				'<button class="rehearsal-player__playlistButton' + active + '" type="button" data-playlist="' + escapeText(playlist.id) + '" title="' + escapeText(playlist.title) + '">' +
+					'<img src="' + escapeText(playlist.artwork_url) + '" alt="">' +
+					'<span class="rehearsal-player__playlistLabel">' +
+						'<span class="rehearsal-player__playlistName">' + escapeText(playlist.title) + '</span>' +
+						'<span class="rehearsal-player__playlistMeta">' + escapeText(playlist.track_count + ' ' + text.tracks) + '</span>' +
+					'</span>' +
+				'</button>'
+			);
+		}
+
+		elements.playlists.innerHTML = html.join('');
+
+		var buttons = elements.playlists.querySelectorAll('[data-playlist]');
+		for (var j = 0; j < buttons.length; j++) {
+			buttons[j].addEventListener('click', function (event) {
+				var nextPlaylist = event.currentTarget.getAttribute('data-playlist');
+				if (nextPlaylist === selectedPlaylistId) {
+					return;
+				}
+				selectedPlaylistId = nextPlaylist;
+				selectedComposer = '';
+				selectedComment = '';
+				loadState();
+			});
+		}
+	}
+
+	function renderPills(container, values, activeValue, allLabel, emptyLabel, clickHandler) {
+		var html = [
+			'<button class="rehearsal-player__pill' + (activeValue ? '' : ' is-active') + '" type="button" data-filter="__all__">' + escapeText(allLabel) + '</button>'
+		];
+
+		for (var i = 0; i < values.length; i++) {
+			var active = values[i] === activeValue ? ' is-active' : '';
+			html.push('<button class="rehearsal-player__pill' + active + '" type="button" data-filter="' + escapeText(values[i]) + '">' + escapeText(values[i]) + '</button>');
+		}
+
+		if (values.length) {
+			container.innerHTML = html.join('');
+			var buttons = container.querySelectorAll('[data-filter]');
+			for (var j = 0; j < buttons.length; j++) {
+				buttons[j].addEventListener('click', function (event) {
+					var value = event.currentTarget.getAttribute('data-filter');
+					clickHandler(value === '__all__' ? '' : value);
+				});
+			}
+		}
+		else {
+			container.innerHTML = '<span class="rehearsal-player__subtle">' + escapeText(emptyLabel) + '</span>';
+		}
+	}
+
+	function renderFilters() {
+		renderPills(elements.composerFilters, state.filters.composers || [], selectedComposer, text.allComposers, text.noComposerFilters, function (value) {
+			selectedComposer = value;
+			renderFilters();
+			renderTracks();
+		});
+
+		renderPills(elements.commentFilters, state.filters.comments || [], selectedComment, text.allComments, text.noCommentFilters, function (value) {
+			selectedComment = value;
+			renderFilters();
+			renderTracks();
+		});
+	}
+
+	function renderTracks() {
+		var tracks = filteredTracks();
+		var playlist = selectedPlaylist();
+		elements.tracks.className = 'rehearsal-player__tileGrid';
+
+		if (playlist) {
+				elements.trackSummary.textContent = playlist.title + ' | ' + tracks.length + ' / ' + state.track_count + ' ' + text.playlistTracks;
+		}
+		else {
+			elements.trackSummary.textContent = tracks.length + ' ' + text.tracks;
+		}
+
+		if (!tracks.length) {
+			elements.tracks.innerHTML = '<div class="rehearsal-player__empty">' + escapeText(text.noTracks) + '</div>';
+			return;
+		}
+
+		var html = [];
+		for (var i = 0; i < tracks.length; i++) {
+			var track = tracks[i];
+			var active = (
+				(currentStatus.currentId && String(currentStatus.currentId) === String(track.id || '')) ||
+				(currentStatus.currentUrl && currentStatus.currentUrl === track.url)
+			) ? ' is-active' : '';
+
+			html.push(
+				'<button class="rehearsal-player__tile' + active + '" type="button" data-track-id="' + escapeText(track.id || '') + '" data-url="' + escapeText(track.url) + '" data-title="' + escapeText(track.title || text.unknownTrack) + '">' +
+					'<span class="rehearsal-player__tileTitle">' + escapeText(track.title || text.unknownTrack) + '</span>' +
+					'<span class="rehearsal-player__tileLine">' + escapeText(track.composer || ' ') + '</span>' +
+					'<span class="rehearsal-player__tileLine">' + escapeText(track.comment || ' ') + '</span>' +
+				'</button>'
+			);
+		}
+
+		elements.tracks.innerHTML = html.join('');
+
+		var buttons = elements.tracks.querySelectorAll('[data-url]');
+		for (var j = 0; j < buttons.length; j++) {
+			buttons[j].addEventListener('click', function (event) {
+				playTrack(
+					event.currentTarget.getAttribute('data-url'),
+					event.currentTarget.getAttribute('data-title')
+				);
+			});
+			}
+
+			layoutTrackGrid(tracks.length);
+			window.requestAnimationFrame(fitTileText);
+		}
+
+		function layoutTrackGrid(count) {
+			if (!count) {
+				return;
+		}
+
+			var panelRect = elements.tracksPanel.getBoundingClientRect();
+			var width = Math.max(240, Math.floor(panelRect.width - 4));
+			var height = Math.max(140, Math.floor(panelRect.height - 12));
+			var gap = 6;
+			var best = null;
+			var maxRows = Math.min(Math.max(4, count), 20);
+
+		for (var rows = 1; rows <= maxRows; rows++) {
+			var cols = Math.ceil(count / rows);
+			var tileWidth = Math.floor((width - (cols - 1) * gap) / cols);
+			var tileHeight = Math.floor((height - (rows - 1) * gap) / rows);
+			if (tileWidth < 56 || tileHeight < 28) {
+				continue;
+			}
+
+			var score = Math.min(tileWidth / 108, tileHeight / 68);
+			if (!best || score > best.score) {
+				best = {
+					rows: rows,
+					cols: cols,
+					tileWidth: tileWidth,
+					tileHeight: tileHeight,
+					score: score
+				};
+			}
+		}
+
+		if (!best) {
+			best = {
+				rows: Math.min(count, 8),
+				cols: Math.ceil(count / Math.min(count, 8)),
+				tileWidth: 82,
+				tileHeight: 54
+			};
+		}
+
+		elements.tracks.style.gridTemplateColumns = 'repeat(' + best.cols + ', minmax(0, 1fr))';
+		elements.tracks.style.gridAutoRows = best.tileHeight + 'px';
+
+		if (best.tileHeight <= 34 || best.tileWidth <= 68) {
+			elements.tracks.classList.add('is-micro');
+		}
+		else if (best.tileHeight <= 52 || best.tileWidth <= 84) {
+			elements.tracks.classList.add('is-ultra');
+		}
+			else if (best.tileHeight <= 72 || best.tileWidth <= 112) {
+				elements.tracks.classList.add('is-compact');
+			}
+		}
+
+		function fitTileText() {
+			var tiles = elements.tracks.querySelectorAll('.rehearsal-player__tile');
+
+			for (var i = 0; i < tiles.length; i++) {
+				var tile = tiles[i];
+				var title = tile.querySelector('.rehearsal-player__tileTitle');
+				var meta = tile.querySelector('.rehearsal-player__tileLine');
+
+				if (!title || !meta) {
+					continue;
+				}
+
+				tile.style.removeProperty('--tile-title-size');
+				tile.style.removeProperty('--tile-meta-size');
+
+				var titleSize = parseFloat(window.getComputedStyle(title).fontSize);
+				var metaSize = parseFloat(window.getComputedStyle(meta).fontSize);
+				var attempts = 0;
+
+				while (tile.scrollHeight > tile.clientHeight && attempts < 10) {
+					titleSize = Math.max(7, titleSize - 0.7);
+					metaSize = Math.max(6, metaSize - 0.55);
+					tile.style.setProperty('--tile-title-size', titleSize + 'px');
+					tile.style.setProperty('--tile-meta-size', metaSize + 'px');
+					attempts++;
+				}
+			}
+		}
+
+		function updateStatus(status) {
+			currentStatus = status;
+
+		var label = text.statusStopped;
+		if (status.mode === 'play') {
+			label = text.statusPlaying;
+		}
+		else if (status.mode === 'pause') {
+			label = text.statusPaused;
+		}
+
+			elements.nowPlaying.textContent = status.title || text.nothingPlaying;
+			elements.statusMeta.textContent = label + ' | ' + formatTime(status.time) + ' / ' + formatTime(status.duration) + ' | ' + currentPlayerName();
+			elements.play.classList.toggle('is-active', status.mode === 'play');
+			elements.pause.classList.toggle('is-active', status.mode === 'pause');
+			syncVolume(status.volume);
+		}
+
+	function buildApiUrl() {
+		var url = apiUrl + '?action=state';
+		if (selectedPlayer()) {
+			url += '&player=' + encodeURIComponent(selectedPlayer());
+		}
+		if (selectedPlaylistId) {
+			url += '&playlist=' + encodeURIComponent(selectedPlaylistId);
+		}
+		return url;
+	}
+
+	function rpc(command) {
+		return fetch(jsonrpcUrl, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({
+				id: 1,
+				method: 'slim.request',
+				params: [selectedPlayer(), command]
+			})
+		}).then(function (response) {
+			return response.json();
+		});
+	}
+
+	function loadState() {
+		showMessage(text.loading, 'info');
+
+		return fetch(buildApiUrl(), { method: 'GET' })
+			.then(function (response) {
+				return response.json().then(function (data) {
+					if (!response.ok) {
+						throw data;
+					}
+					return data;
+				});
+			})
+			.then(function (data) {
+				state = data;
+				if (!selectedPlaylistId) {
+					selectedPlaylistId = data.selected_playlist_id || '';
+				}
+				else if (data.selected_playlist_id) {
+					selectedPlaylistId = data.selected_playlist_id;
+				}
+
+				renderPlayers();
+				renderPlaylists();
+				renderFilters();
+				renderTracks();
+				refreshStatus();
+
+				if (data.error) {
+					showMessage(data.error, 'error');
+				}
+				else if (!data.playlists.length) {
+					showMessage(text.noPlaylists, 'error');
+				}
+				else if (!data.players.length) {
+					showMessage(text.noPlayers, 'info');
+				}
+				else {
+					showMessage('', 'info');
+				}
+			})
+			.catch(function (error) {
+				showMessage((error && error.error) || 'Unable to load rehearsal data.', 'error');
+			});
+	}
+
+		function playTrack(url, title) {
+			if (!selectedPlayer()) {
+				showMessage(text.needPlayer, 'error');
+				return;
+		}
+
+		rpc(['playlist', 'play', url, title || ''])
+			.then(function () {
+				setTimeout(refreshStatus, 150);
+			})
+				.catch(function () {
+					showMessage('Unable to start playback.', 'error');
+				});
+		}
+
+		function startPlayback() {
+			if (!selectedPlayer()) {
+				showMessage(text.needPlayer, 'error');
+				return;
+			}
+
+			rpc(['play']).then(function () {
+				setTimeout(refreshStatus, 120);
+			});
+		}
+
+		function pausePlayback() {
+			if (!selectedPlayer()) {
+				showMessage(text.needPlayer, 'error');
+				return;
+			}
+
+			rpc(['pause']).then(function () {
+				setTimeout(refreshStatus, 120);
+			});
+		}
+
+		function refreshStatus() {
+			if (!selectedPlayer()) {
+				updateStatus({
+					mode: 'stop',
+					time: 0,
+					duration: 0,
+					currentId: '',
+					title: text.nothingPlaying,
+					currentUrl: '',
+					volume: currentStatus.volume
+				});
+				renderTracks();
+				return;
+			}
+
+		rpc(['status', '-', 1])
+			.then(function (payload) {
+				var result = payload && payload.result ? payload.result : {};
+				var loop = result.playlist_loop || result.item_loop || [];
+				var currentItem = loop.length ? loop[0] : null;
+					var nextStatus = {
+						mode: result.mode || 'stop',
+						time: Number(result.time || 0),
+						duration: Number(result.duration || 0),
+						currentId: currentItem && currentItem.id ? currentItem.id : '',
+						title: result.current_title || result.title || (currentItem && currentItem.title) || text.nothingPlaying,
+						currentUrl: currentItem && currentItem.url ? currentItem.url : '',
+						volume: Number(result['mixer volume'] || currentStatus.volume || 50)
+					};
+				var changedTrack = nextStatus.currentId !== currentStatus.currentId || nextStatus.currentUrl !== currentStatus.currentUrl;
+
+				updateStatus(nextStatus);
+				if (changedTrack) {
+					renderTracks();
+				}
+			})
+			.catch(function () {
+					updateStatus({
+						mode: 'stop',
+						time: 0,
+						duration: 0,
+						currentId: '',
+						title: text.nothingPlaying,
+						currentUrl: '',
+						volume: currentStatus.volume
+					});
+				});
+		}
+
+	function jumpRelative(offset) {
+		if (!selectedPlayer()) {
+			showMessage(text.needPlayer, 'error');
+			return;
+		}
+
+		var value = offset > 0 ? '+' + offset : String(offset);
+		rpc(['time', value]).then(function () {
+			setTimeout(refreshStatus, 120);
+		});
+	}
+
+	function playFromFraction(fraction) {
+		if (!selectedPlayer()) {
+			showMessage(text.needPlayer, 'error');
+			return;
+		}
+
+		if (!currentStatus.duration) {
+			showMessage(text.needDuration, 'error');
+			return;
+		}
+
+		var target = Math.max(0, Math.floor(currentStatus.duration * fraction));
+		rpc(['play'])
+			.then(function () {
+				return rpc(['time', target]);
+			})
+			.then(function () {
+				setTimeout(refreshStatus, 120);
+			});
+	}
+
+		function startStatusPolling() {
+			if (statusTimer) {
+				window.clearInterval(statusTimer);
+		}
+
+		statusTimer = window.setInterval(refreshStatus, 1500);
+	}
+
+		elements.player.addEventListener('change', function () {
+			selectedPlayerId = elements.player.value || '';
+			setControlsEnabled(!!selectedPlayerId);
+			refreshStatus();
+		});
+		elements.play.addEventListener('click', startPlayback);
+		elements.pause.addEventListener('click', pausePlayback);
+
+		for (var i = 0; i < jumpButtons.length; i++) {
+			jumpButtons[i].addEventListener('click', function (event) {
+				jumpRelative(Number(event.currentTarget.getAttribute('data-jump')));
+			});
+		}
+
+		for (var j = 0; j < fractionButtons.length; j++) {
+			fractionButtons[j].addEventListener('click', function (event) {
+				playFromFraction(Number(event.currentTarget.getAttribute('data-fraction')));
+			});
+		}
+
+		elements.volume.addEventListener('input', function () {
+			setVolume(elements.volume.value);
+		});
+
+		elements.volume.addEventListener('change', function () {
+			setVolume(elements.volume.value);
+		});
+
+		window.addEventListener('resize', function () {
+			renderTracks();
+		});
+
+	updateStatus({
+		mode: 'stop',
+		time: 0,
+		duration: 0,
+		currentId: '',
+		title: text.nothingPlaying,
+		currentUrl: '',
+		volume: 50
+	});
+	setControlsEnabled(false);
+	startStatusPolling();
+	loadState();
+})();
+</script>
+
+[% PROCESS pagefooter.html %]

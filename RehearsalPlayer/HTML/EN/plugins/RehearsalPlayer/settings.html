@@ -1,0 +1,8 @@
+[% PROCESS settings/header.html %]
+
+	[% WRAPPER setting title="PLUGIN_REHEARSAL_PLAYER_PLAYLIST_SOURCE" desc="" %]
+		[% "PLUGIN_REHEARSAL_PLAYER_PLAYLIST_SOURCE_HELP" | string %]<br/><br/>
+		<div class="settingItem">[% playlistdir | html %]</div>
+	[% END %]
+
+[% PROCESS settings/footer.html %]

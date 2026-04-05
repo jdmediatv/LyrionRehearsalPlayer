@@ -33,7 +33,7 @@ Native Lyrion Music Server plugin for rehearsal spaces, with playlist artwork se
 
 1. Add this plugin repository XML URL in Lyrion's plugin repository settings:
 
-   `https://raw.githubusercontent.com/YOUR_GITHUB_OWNER/YOUR_GITHUB_REPO/main/repo.xml`
+   `https://raw.githubusercontent.com/jdmediatv/LyrionRehearsalPlayer/main/repo.xml`
 
 2. Refresh the plugin list in Lyrion.
 3. Install `Rehearsal Player`.
@@ -48,8 +48,11 @@ Native Lyrion Music Server plugin for rehearsal spaces, with playlist artwork se
 
 ## Release Publishing
 
-1. Update `repo.xml` with your real GitHub owner and repository name.
-2. Commit `repo.xml` to the repository root.
+1. Commit `repo.xml` to the repository root.
+2. Confirm the raw repository URL is live:
+
+   `https://raw.githubusercontent.com/jdmediatv/LyrionRehearsalPlayer/main/repo.xml`
+
 3. Create GitHub release tag `v1.0.0`.
 4. Upload:
 
