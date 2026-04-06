@@ -1,22 +1,22 @@
-# Rehearsal Player v1.0.1
+# Rehearsal Player v1.0.2
 
-Tag: `v1.0.1`
+Tag: `v1.0.2`
 
 Release title:
 
-`Rehearsal Player v1.0.1`
+`Rehearsal Player v1.0.2`
 
 Assets to upload:
 
-- `RehearsalPlayer-1.0.1.zip`
-- `RehearsalPlayer-1.0.1.sha1`
+- `RehearsalPlayer-1.0.2.zip`
+- `RehearsalPlayer-1.0.2.sha1`
 
 Suggested release body:
 
 ```md
 Rehearsal Player is a native Lyrion Music Server plugin built for rehearsal spaces.
 
-Features in v1.0.1:
+Features in v1.0.2:
 
 - Direct web app at `/jazzartplayer`
 - Playlist-driven loading from saved LMS playlists
@@ -26,12 +26,13 @@ Features in v1.0.1:
 - Large play and pause controls
 - Jump presets for relative seek and percentage-based starts
 - Volume slider for the selected player
-- Larger responsive track titles with smaller Tutor/Class metadata
-- Track grid layout that stays below the controls and uses the desktop viewport more effectively
+- Jazzart is suppressed from Tutor/Class tile metadata and filter buttons
+- Tutor and Class filters are now mutually exclusive
+- New portrait tablet page at `/jazzartplayertablet`, optimized for iPad Air 4 style use
 
 Install options:
 
-- Manual install: download `RehearsalPlayer-1.0.1.zip` and extract the `RehearsalPlayer` folder into your LMS plugins directory
+- Manual install: download `RehearsalPlayer-1.0.2.zip` and extract the `RehearsalPlayer` folder into your LMS plugins directory
 - Repository install: add the hosted `repo.xml` URL to LMS plugin repositories
 ```
 
@@ -39,8 +40,8 @@ Publish checklist:
 
 1. Create a GitHub repo for the plugin or release assets.
 2. Commit `repo.xml` to the repo root in `jdmediatv/LyrionRehearsalPlayer`.
-3. Create release tag `v1.0.1`.
-4. Upload `RehearsalPlayer-1.0.1.zip` and `RehearsalPlayer-1.0.1.sha1` as release assets.
+3. Create release tag `v1.0.2`.
+4. Upload `RehearsalPlayer-1.0.2.zip` and `RehearsalPlayer-1.0.2.sha1` as release assets.
 5. Test the final asset URL from `repo.xml`.
 6. Share this raw `repo.xml` URL with users, or submit it to the LMS community repository aggregator:
 

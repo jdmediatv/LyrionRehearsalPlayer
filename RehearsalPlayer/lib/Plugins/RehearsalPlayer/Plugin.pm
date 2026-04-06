@@ -23,6 +23,7 @@ use Slim::Web::Pages;
 
 use constant MENU_PATH => 'plugins/RehearsalPlayer/index.html';
 use constant SLUG_PATH => 'jazzartplayer';
+use constant TABLET_SLUG_PATH => 'jazzartplayertablet';
 use constant API_PATH  => 'plugins/RehearsalPlayer/api';
 
 my $serverprefs = preferences('server');
@@ -54,14 +55,28 @@ sub webPages {
 	Slim::Web::Pages->addPageLinks('plugins', { $class->getDisplayName() => SLUG_PATH });
 	Slim::Web::Pages->addPageFunction(MENU_PATH, \&handleWebIndex);
 	Slim::Web::Pages->addPageFunction(qr{^jazzartplayer/?$}, \&handleWebIndex);
+	Slim::Web::Pages->addPageFunction(qr{^jazzartplayertablet/?$}, \&handleTabletIndex);
 	Slim::Web::Pages->addRawFunction(API_PATH, \&handleApi);
 }
 
 sub handleWebIndex {
 	my ($client, $params) = @_;
 
+	return _renderIndex($client, $params, 'desktop', SLUG_PATH);
+}
+
+sub handleTabletIndex {
+	my ($client, $params) = @_;
+
+	return _renderIndex($client, $params, 'tablet', TABLET_SLUG_PATH);
+}
+
+sub _renderIndex {
+	my ($client, $params, $layout, $slugPath) = @_;
+
+	$params->{rehearsalPlayerLayout}    = $layout || 'desktop';
 	$params->{rehearsalPlayerApiUrl}  = API_PATH;
-	$params->{rehearsalPlayerSlugUrl} = SLUG_PATH;
+	$params->{rehearsalPlayerSlugUrl} = $slugPath || SLUG_PATH;
 
 	return Slim::Web::HTTP::filltemplatefile(MENU_PATH, $params);
 }
@@ -483,11 +498,8 @@ sub _normalizeTrackRow {
 	my ($row) = @_;
 	return unless $row && ref $row eq 'HASH';
 
-	my $composer = $row->{composer} || '';
-	$composer =~ s/,/, /g if $composer;
-
-	my $comment = $row->{comment} || '';
-	$comment =~ s/,/, /g if $comment;
+	my $composer = _cleanMetadataValue($row->{composer});
+	my $comment  = _cleanMetadataValue($row->{comment});
 
 	return {
 		id          => $row->{id},
@@ -499,6 +511,26 @@ sub _normalizeTrackRow {
 			? '/music/' . $row->{coverid} . '/cover_96x96_p.png'
 			: '/music/0/cover_96x96_p.png',
 	};
+}
+
+sub _cleanMetadataValue {
+	my ($value) = @_;
+	return '' unless defined $value && $value ne '';
+
+	my @parts = split /\s*,\s*/, $value;
+	my (@cleaned, %seen);
+
+	for my $part (@parts) {
+		next unless defined $part;
+		$part =~ s/^\s+//;
+		$part =~ s/\s+$//;
+		next unless length $part;
+		next if lc($part) eq 'jazzart';
+		next if $seen{lc $part}++;
+		push @cleaned, $part;
+	}
+
+	return join(', ', @cleaned);
 }
 
 sub _buildFilters {
