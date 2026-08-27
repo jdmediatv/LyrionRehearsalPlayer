@@ -1,31 +1,32 @@
-# Rehearsal Player v1.1.5
+# Rehearsal Player v1.1.6
 
-Tag: `v1.1.5`
+Tag: `v1.1.6`
 
 Release title:
 
-`Rehearsal Player v1.1.5`
+`Rehearsal Player v1.1.6`
 
 Assets to upload:
 
-- `RehearsalPlayer-1.1.5.zip`
-- `RehearsalPlayer-1.1.5.sha1`
+- `RehearsalPlayer-1.1.6.zip`
+- `RehearsalPlayer-1.1.6.sha1`
 
 Suggested release body:
 
 ```md
 Rehearsal Player is a native Lyrion Music Server plugin built for rehearsal spaces.
 
-New in v1.1.5 (encoding fix):
+New in v1.1.6 (important bug fix):
 
-- A couple of UI symbols in the settings page and the teacher playlist
-  section (the remove-row "X" and the default music-note icon) were
-  embedded in the plugin's HTML as raw UTF-8 characters. On a Lyrion
-  install that doesn't declare a UTF-8 charset for plugin pages, browsers
-  could misinterpret those bytes and render them as garbled mojibake
-  instead of the intended symbol. They're now written as JavaScript
-  unicode escapes (\uXXXX), which render correctly regardless of how the
-  page's byte encoding gets interpreted.
+- Clicking a teacher playlist was sending the plugin's own internal row
+  identifier to Spotify's Web API instead of the actual Spotify playlist
+  id. This meant a teacher playlist could fail to load with a 400 or 403
+  error even when its Spotify Playlist field in Settings was filled in
+  correctly - the two ids just happened to look similar (both short
+  alphanumeric strings), which made it easy to mistake for a bad link when
+  it was actually this bug. Root-caused after multiple rounds of log
+  analysis with a real Lyrion install; fixed by using the row's real
+  Spotify playlist id when fetching its tracks.
 
 Also included from prior releases:
 
@@ -41,15 +42,15 @@ Also included from prior releases:
 
 Install options:
 
-- Manual install: download `RehearsalPlayer-1.1.5.zip` and extract the `RehearsalPlayer` folder into your LMS plugins directory
+- Manual install: download `RehearsalPlayer-1.1.6.zip` and extract the `RehearsalPlayer` folder into your LMS plugins directory
 - Repository install: add the hosted `repo.xml` URL to LMS plugin repositories (existing installs using this method will offer the update automatically)
 ```
 
 Publish checklist:
 
-1. Commit `repo.xml`, `release-assets/RehearsalPlayer-1.1.5.zip`, and `release-assets/RehearsalPlayer-1.1.5.sha1` to `jdmediatv/LyrionRehearsalPlayer` main.
-2. Create release tag `v1.1.5`.
-3. Upload `RehearsalPlayer-1.1.5.zip` and `RehearsalPlayer-1.1.5.sha1` as release assets (optional - the raw `release-assets/` copy in the repo is what `repo.xml` actually points to and is sufficient for installs to update).
+1. Commit `repo.xml`, `release-assets/RehearsalPlayer-1.1.6.zip`, and `release-assets/RehearsalPlayer-1.1.6.sha1` to `jdmediatv/LyrionRehearsalPlayer` main.
+2. Create release tag `v1.1.6`.
+3. Upload `RehearsalPlayer-1.1.6.zip` and `RehearsalPlayer-1.1.6.sha1` as release assets (optional - the raw `release-assets/` copy in the repo is what `repo.xml` actually points to and is sufficient for installs to update).
 4. Test the final asset URL from `repo.xml`.
 5. Confirm existing installs pick up the update: Settings -> Plugins in LMS will offer it if "Update plugins automatically" is off, or install it automatically on next restart if that option is on.
 

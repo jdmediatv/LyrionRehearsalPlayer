@@ -1369,6 +1369,8 @@
 			return;
 		}
 
+		var teacherPlaylist = findTeacherPlaylist(id);
+
 		selectedTeacherPlaylistId = id;
 		activeSource = 'spotify';
 		selectedComposer = '';
@@ -1376,7 +1378,11 @@
 
 		renderSidebarPlaylists();
 		renderSpotifyAuth();
-		loadSpotifyPlaylistTracks(id);
+		// Use the row's actual Spotify playlist id here, not our own
+		// internal row id (which is what "id" is) - they are not the
+		// same value and sending the internal id to Spotify's API was
+		// causing every playlist load to 400/403.
+		loadSpotifyPlaylistTracks(teacherPlaylist ? teacherPlaylist.playlistId : '');
 	}
 
 	function loadSpotifyPlaylistTracks(playlistId) {
