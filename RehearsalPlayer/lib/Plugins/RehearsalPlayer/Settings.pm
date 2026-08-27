@@ -88,6 +88,22 @@ sub _parseTeacherPlaylistsJson {
 			$playlistId = $1;
 		}
 
+		# Spotify playlist ids are always 22 base62 characters. If what we
+		# ended up with doesn't look like one, it's almost always because a
+		# shortened share link (e.g. spotify.link/xxxxxxxx, which has no
+		# "playlist/" segment for the regex above to match) was pasted in
+		# instead of the full open.spotify.com/playlist/<id> link or
+		# spotify:playlist:<id> URI. We still save it - better than losing
+		# the row - but flag it loudly so it's not a silent 403 later.
+		if ($playlistId !~ m{^[A-Za-z0-9]{22}$}) {
+			$log->warn(
+				"Teacher playlist \"$label\" has a Spotify playlist id that doesn't look valid: \"$playlistId\". " .
+				'This usually means a shortened share link (spotify.link/...) was pasted instead of the full ' .
+				'open.spotify.com/playlist/<22-character-id> link. Re-copy the link from Spotify\'s "Share" menu ' .
+				'and choose "Copy link to playlist" (not a shortened link) if this playlist fails to load.'
+			);
+		}
+
 		push @cleaned, {
 			id         => _trim($row->{id}) || _newId(),
 			label      => $label,

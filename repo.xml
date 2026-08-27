@@ -8,15 +8,15 @@ https://raw.githubusercontent.com/jdmediatv/LyrionRehearsalPlayer/main/repo.xml
 		<title lang="EN">Jazzart Plugins</title>
 	</details>
 	<plugins>
-		<plugin name="RehearsalPlayer" version="1.1.2" minTarget="7.9" maxTarget="*">
+		<plugin name="RehearsalPlayer" version="1.1.4" minTarget="7.9" maxTarget="*">
 			<title lang="EN">Rehearsal Player</title>
 			<desc lang="EN">Dark, playlist-driven rehearsal playback with tutor/class filters, artwork playlist selection, large transport controls, quick jump presets, and a Spotify-backed teacher playlist section.</desc>
 			<category>tools</category>
-			<changes lang="EN">Diagnostics: logs the real underlying reason to server.log when the plugin fails to reach Spotify for an app-level (Client Credentials) token, instead of only logging on user sign-in token requests. No UI or behaviour changes.</changes>
+			<changes lang="EN">Fixes Spotify browsing/search broken by Spotify's February 2026 Web API changes for Development Mode apps: the playlist tracks endpoint moved from /tracks to /items (was causing 403 Forbidden), and the search results limit dropped from 50 to 10 (was causing 400 Bad Request). Also: the Add-track search box now shows the real backend error instead of always saying "No matching tracks found", and the settings page now warns in server.log if a teacher playlist's Spotify ID looks like it came from a shortened share link instead of the full playlist link.</changes>
 			<creator>Jazzart</creator>
 			<link>https://github.com/jdmediatv/LyrionRehearsalPlayer</link>
-			<url>https://raw.githubusercontent.com/jdmediatv/LyrionRehearsalPlayer/main/release-assets/RehearsalPlayer-1.1.2.zip</url>
-			<sha>786c4b14639e183ddf6f81352c43d2c1f36931e8</sha>
+			<url>https://raw.githubusercontent.com/jdmediatv/LyrionRehearsalPlayer/main/release-assets/RehearsalPlayer-1.1.4.zip</url>
+			<sha>1defc132149b5d8bb2c6d11ad404aaf33050fdba</sha>
 		</plugin>
 	</plugins>
 </extensions>

@@ -320,9 +320,14 @@ sub getPlaylistTracks {
 
 	return $cbErr->('No Spotify playlist selected.') unless $playlistId;
 
-	my $fields = 'items(track(id,uri,name,duration_ms,artists(name),album(name,images))),next';
-	my $url = API_BASE . '/playlists/' . uri_escape_utf8($playlistId) . '/tracks?'
-		. _buildQuery({ fields => $fields, limit => 100 });
+	# As of Spotify's February 2026 Web API migration for Development Mode
+	# apps, GET/POST/PUT/DELETE /playlists/{id}/tracks were renamed to
+	# /playlists/{id}/items, and each entry's nested "track" object is now
+	# nested under "item" instead. We deliberately don't pass a "fields"
+	# filter here (its selector syntax changed too and getting it wrong
+	# risks a 400) - the full response is small enough for a playlist.
+	my $url = API_BASE . '/playlists/' . uri_escape_utf8($playlistId) . '/items?'
+		. _buildQuery({ limit => 100 });
 
 	_apiGet($url, $accessToken, sub {
 		my ($data) = @_;
@@ -336,7 +341,9 @@ sub _mapTrackItems {
 	my @tracks;
 
 	for my $item (@$items) {
-		my $track = $item->{track};
+		# "item" is the post-February-2026 key; "track" is kept as a
+		# fallback in case an older API version is still in play.
+		my $track = $item->{item} || $item->{track};
 		next unless $track && $track->{id};
 
 		my @artistNames = map { $_->{name} } @{ $track->{artists} || [] };
@@ -371,7 +378,10 @@ sub searchTracks {
 
 	return $cbOk->({ tracks => [] }) unless defined $query && length $query;
 
-	my $url = API_BASE . '/search?' . _buildQuery({ q => $query, type => 'track', limit => 15 });
+	# Spotify's February 2026 Development Mode migration lowered the search
+	# endpoint's maximum "limit" from 50 to 10; asking for more now returns
+	# a 400 Bad Request.
+	my $url = API_BASE . '/search?' . _buildQuery({ q => $query, type => 'track', limit => 10 });
 
 	_apiGet($url, $accessToken, sub {
 		my ($data) = @_;
@@ -420,7 +430,9 @@ sub addTrackToPlaylist {
 
 	return $cbErr->('Missing playlist or track.') unless $playlistId && $trackUri;
 
-	my $url = API_BASE . '/playlists/' . uri_escape_utf8($playlistId) . '/tracks';
+	# Renamed from /playlists/{id}/tracks in Spotify's February 2026
+	# Development Mode migration (see getPlaylistTracks() above).
+	my $url = API_BASE . '/playlists/' . uri_escape_utf8($playlistId) . '/items';
 	my $body = to_json({ uris => [ $trackUri ] });
 
 	my $http = Slim::Networking::SimpleAsyncHTTP->new(

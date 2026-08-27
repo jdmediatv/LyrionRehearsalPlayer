@@ -1472,12 +1472,20 @@
 
 	function spotifySearch(query) {
 		fetch(apiUrl + '?action=spotify_search&q=' + encodeURIComponent(query), { credentials: 'same-origin' })
-			.then(function (response) { return response.json(); })
+			.then(function (response) {
+				return response.json().then(function (data) {
+					if (!response.ok) {
+						throw data;
+					}
+					return data;
+				});
+			})
 			.then(function (data) {
 				renderSpotifyResults(data.tracks || []);
 			})
-			.catch(function () {
+			.catch(function (error) {
 				elements.spotifyResults.innerHTML = '';
+				showMessage((error && error.error) || 'Unable to search Spotify.', 'error');
 			});
 	}
 
