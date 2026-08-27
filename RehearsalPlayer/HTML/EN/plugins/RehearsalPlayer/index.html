@@ -41,9 +41,22 @@
 	.rehearsal-player__main {
 		display: grid;
 		gap: 8px;
-		grid-template-rows: auto auto auto auto minmax(0, 1fr);
+		grid-template-rows: auto auto auto auto auto minmax(0, 1fr);
 		min-height: 0;
 		min-width: 0;
+	}
+
+	.rehearsal-player__brand {
+		align-items: center;
+		display: flex;
+		justify-content: center;
+		padding: 2px 0;
+	}
+
+	.rehearsal-player__brandLogo {
+		display: block;
+		height: 40px;
+		width: auto;
 	}
 
 	.rehearsal-player__teacherHeader {
@@ -1187,6 +1200,10 @@
 	data-initial-player="[% player | html %]">
 
 	<div class="rehearsal-player__main">
+
+	<div class="rehearsal-player__brand">
+		<img class="rehearsal-player__brandLogo" src="[% webroot %]plugins/RehearsalPlayer/jazzart-logo.png" alt="Jazzart Studio Player">
+	</div>
 
 	<div class="rehearsal-player__panel rehearsal-player__panel--tight">
 		<div class="rehearsal-player__title">[% "PLUGIN_REHEARSAL_PLAYER_PLAYLISTS" | string %]</div>

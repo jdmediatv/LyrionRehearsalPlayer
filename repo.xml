@@ -8,15 +8,15 @@ https://raw.githubusercontent.com/jdmediatv/LyrionRehearsalPlayer/main/repo.xml
 		<title lang="EN">Jazzart Plugins</title>
 	</details>
 	<plugins>
-		<plugin name="RehearsalPlayer" version="1.1.11" minTarget="7.9" maxTarget="*">
+		<plugin name="RehearsalPlayer" version="1.1.12" minTarget="7.9" maxTarget="*">
 			<title lang="EN">Rehearsal Player</title>
 			<desc lang="EN">Dark, playlist-driven rehearsal playback with tutor/class filters, artwork playlist selection, large transport controls, quick jump presets, and a Spotify-backed teacher playlist section.</desc>
 			<category>tools</category>
-			<changes lang="EN">Fixed a bug from 1.1.10 where shrinking track tiles for a short playlist left a dead click zone around each button - tiles now only get shorter (never centered/shrunk in place), so every visible pixel of a tile stays clickable.</changes>
+			<changes lang="EN">Added the Jazzart Studio Player logo to the top of the kiosk screen.</changes>
 			<creator>Jazzart</creator>
 			<link>https://github.com/jdmediatv/LyrionRehearsalPlayer</link>
-			<url>https://raw.githubusercontent.com/jdmediatv/LyrionRehearsalPlayer/main/release-assets/RehearsalPlayer-1.1.11.zip</url>
-			<sha>fc788f18ce1eb1f27ac5ed4afe513a964fcc423b</sha>
+			<url>https://raw.githubusercontent.com/jdmediatv/LyrionRehearsalPlayer/main/release-assets/RehearsalPlayer-1.1.12.zip</url>
+			<sha>4f94724c5b4356709ec0a5b91e725c19f94d569e</sha>
 		</plugin>
 	</plugins>
 </extensions>
