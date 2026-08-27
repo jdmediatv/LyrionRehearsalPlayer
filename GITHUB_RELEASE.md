@@ -1,27 +1,36 @@
-# Rehearsal Player v1.1.10
+# Rehearsal Player v1.1.11
 
-Tag: `v1.1.10`
+Tag: `v1.1.11`
 
 Release title:
 
-`Rehearsal Player v1.1.10`
+`Rehearsal Player v1.1.11`
 
 Assets to upload:
 
-- `RehearsalPlayer-1.1.10.zip`
-- `RehearsalPlayer-1.1.10.sha1`
+- `RehearsalPlayer-1.1.11.zip`
+- `RehearsalPlayer-1.1.11.sha1`
 
 Suggested release body:
 
 ```md
 Rehearsal Player is a native Lyrion Music Server plugin built for rehearsal spaces.
 
-New in v1.1.10:
+New in v1.1.11:
 
-- Track tiles are smaller by default now - a playlist with only a few
-  tracks no longer stretches each one into a huge button that fills the
-  whole panel.
-- Track tiles for a Spotify-sourced playlist now show a small album art
+- Fixed a bug introduced in 1.1.10: shrinking track tiles for a playlist
+  with only a few tracks also centered them in their grid cell, leaving
+  a dead zone around each button where the old, full-size button used to
+  be - tapping there (out of habit, or because it still looked like part
+  of the tile's row) did nothing. Tiles are now only ever made shorter,
+  never shrunk-and-centered, so the whole visible tile stays clickable.
+
+Also included from 1.1.10:
+
+- Track tiles are smaller by default - a playlist with only a few tracks
+  no longer stretches each one into a huge button that fills the whole
+  panel.
+- Track tiles for a Spotify-sourced playlist show a small album art
   thumbnail. Local Lyrion server playlists are unaffected, since they
   have no artwork to show.
 
@@ -71,15 +80,15 @@ Also included from prior releases:
 
 Install options:
 
-- Manual install: download `RehearsalPlayer-1.1.10.zip` and extract the `RehearsalPlayer` folder into your LMS plugins directory
+- Manual install: download `RehearsalPlayer-1.1.11.zip` and extract the `RehearsalPlayer` folder into your LMS plugins directory
 - Repository install: add the hosted `repo.xml` URL to LMS plugin repositories (existing installs using this method will offer the update automatically)
 ```
 
 Publish checklist:
 
-1. Commit `repo.xml`, `release-assets/RehearsalPlayer-1.1.10.zip`, and `release-assets/RehearsalPlayer-1.1.10.sha1` to `jdmediatv/LyrionRehearsalPlayer` main.
-2. Create release tag `v1.1.10`.
-3. Upload `RehearsalPlayer-1.1.10.zip` and `RehearsalPlayer-1.1.10.sha1` as release assets (optional - the raw `release-assets/` copy in the repo is what `repo.xml` actually points to and is sufficient for installs to update).
+1. Commit `repo.xml`, `release-assets/RehearsalPlayer-1.1.11.zip`, and `release-assets/RehearsalPlayer-1.1.11.sha1` to `jdmediatv/LyrionRehearsalPlayer` main.
+2. Create release tag `v1.1.11`.
+3. Upload `RehearsalPlayer-1.1.11.zip` and `RehearsalPlayer-1.1.11.sha1` as release assets (optional - the raw `release-assets/` copy in the repo is what `repo.xml` actually points to and is sufficient for installs to update).
 4. Test the final asset URL from `repo.xml`.
 5. Confirm existing installs pick up the update: Settings -> Plugins in LMS will offer it if "Update plugins automatically" is off, or install it automatically on next restart if that option is on.
 
