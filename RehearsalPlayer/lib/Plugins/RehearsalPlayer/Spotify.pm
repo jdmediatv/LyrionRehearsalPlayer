@@ -257,6 +257,8 @@ sub appToken {
 			$cbOk->($data->{access_token});
 		},
 		sub {
+			my $http = shift;
+			$log->error('Spotify app token request failed: ' . $http->error);
 			$cbErr->('Could not reach Spotify.');
 		},
 	);
