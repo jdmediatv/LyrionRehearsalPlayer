@@ -48,6 +48,11 @@ sub beforeRender {
 	$params->{spotifyClientSecret} = $pluginprefs->get('spotifyClientSecret') || '';
 	$params->{spotifyBridgeUrl}    = $pluginprefs->get('spotifyBridgeUrl') || '';
 	$params->{teacherPlaylistsJson} = to_json($pluginprefs->get('teacherPlaylists') || []);
+	$params->{rehearsalPlayerApiUrl} = 'plugins/RehearsalPlayer/api';
+
+	my $adminSession = $pluginprefs->get('spotifyAdminSession');
+	$params->{spotifyAdminConnected}   = $adminSession ? 1 : 0;
+	$params->{spotifyAdminDisplayName} = $adminSession ? ($adminSession->{display_name} || '') : '';
 }
 
 sub _trim {
@@ -109,6 +114,7 @@ sub _parseTeacherPlaylistsJson {
 			label      => $label,
 			icon       => _trim($row->{icon}),
 			playlistId => $playlistId,
+			inviteUrl  => _trim($row->{inviteUrl}),
 			enabled    => $row->{enabled} ? 1 : 0,
 			sortOrder  => $order++,
 		};

@@ -29,7 +29,12 @@
 		<input type="text" class="settingsInput" id="rp-bridge-url" name="spotifyBridgeUrl" value="[% spotifyBridgeUrl | html %]" size="60" placeholder="https://your-username.github.io/spotify-oauth-bridge/" />
 	[% END %]
 
+	[% WRAPPER setting title="PLUGIN_REHEARSAL_PLAYER_SPOTIFY_CONNECT" desc="PLUGIN_REHEARSAL_PLAYER_SPOTIFY_CONNECT_ADMIN_HELP" %]
+		<div id="rp-spotify-auth" class="rp-spotify-auth" data-connected="[% spotifyAdminConnected %]" data-display-name="[% spotifyAdminDisplayName | html %]"></div>
+	[% END %]
+
 	[% WRAPPER setting title="PLUGIN_REHEARSAL_PLAYER_TEACHER_PLAYLISTS_TITLE" desc="PLUGIN_REHEARSAL_PLAYER_TEACHER_PLAYLISTS_DESC" %]
+		<div class="rp-settings-help">[% "PLUGIN_REHEARSAL_PLAYER_TEACHER_PLAYLISTS_AUTOSYNC_DESC" | string %]</div>
 		<div id="rp-playlist-editor" class="rp-playlist-editor">
 			<table class="rp-playlist-table">
 				<thead>
@@ -38,12 +43,15 @@
 						<th>[% "PLUGIN_REHEARSAL_PLAYER_TP_LABEL" | string %]</th>
 						<th>[% "PLUGIN_REHEARSAL_PLAYER_TP_ICON" | string %]</th>
 						<th>[% "PLUGIN_REHEARSAL_PLAYER_TP_PLAYLIST" | string %]</th>
+						<th>[% "PLUGIN_REHEARSAL_PLAYER_TP_INVITE_URL" | string %]</th>
 						<th></th>
 					</tr>
 				</thead>
 				<tbody id="rp-playlist-rows"></tbody>
 			</table>
 			<button type="button" id="rp-add-row" class="rp-add-row-btn">[% "PLUGIN_REHEARSAL_PLAYER_TP_ADD" | string %]</button>
+			<button type="button" id="rp-sync-playlists" class="rp-add-row-btn">[% "PLUGIN_REHEARSAL_PLAYER_SPOTIFY_SYNC" | string %]</button>
+			<span id="rp-sync-status" class="rp-sync-status"></span>
 			<textarea id="teacherPlaylistsJson" name="teacherPlaylistsJson" style="display:none;"></textarea>
 		</div>
 	[% END %]
@@ -60,8 +68,11 @@
 	.rp-playlist-table th:first-child { width: 30px; text-align: center; }
 	.rp-playlist-table td.rp-col-remove { width: 30px; text-align: center; }
 	.rp-playlist-table td.rp-col-icon input { width: 60px; }
-	.rp-add-row-btn { margin-top: 8px; }
+	.rp-add-row-btn { margin-top: 8px; margin-right: 8px; }
 	.rp-remove-btn { cursor: pointer; }
+	.rp-spotify-auth { align-items: center; display: flex; gap: 10px; }
+	.rp-spotify-name { font-weight: bold; }
+	.rp-sync-status { color: #666; font-size: 12px; margin-left: 6px; }
 </style>
 
 <script type="text/javascript">
@@ -118,6 +129,14 @@
 		playlistInput.value = entry.playlistId || '';
 		playlistTd.appendChild(playlistInput);
 
+		var inviteTd = document.createElement('td');
+		var inviteInput = document.createElement('input');
+		inviteInput.type = 'text';
+		inviteInput.className = 'rp-f-invite';
+		inviteInput.placeholder = 'Paste from Spotify: Share > Invite collaborators';
+		inviteInput.value = entry.inviteUrl || '';
+		inviteTd.appendChild(inviteInput);
+
 		var removeTd = document.createElement('td');
 		removeTd.className = 'rp-col-remove';
 		var removeBtn = document.createElement('span');
@@ -135,14 +154,29 @@
 		tr.appendChild(labelTd);
 		tr.appendChild(iconTd);
 		tr.appendChild(playlistTd);
+		tr.appendChild(inviteTd);
 		tr.appendChild(removeTd);
 
-		[enabledInput, labelInput, iconInput, playlistInput].forEach(function (el) {
+		[enabledInput, labelInput, iconInput, playlistInput, inviteInput].forEach(function (el) {
 			el.addEventListener('input', syncJson);
 			el.addEventListener('change', syncJson);
 		});
 
 		rowsBody.appendChild(tr);
+	}
+
+	function replaceRows(entries) {
+		rowsBody.innerHTML = '';
+
+		if (entries && entries.length) {
+			for (var i = 0; i < entries.length; i++) {
+				addRow(entries[i]);
+			}
+		} else {
+			addRow({ enabled: true });
+		}
+
+		syncJson();
 	}
 
 	function syncJson() {
@@ -163,7 +197,8 @@
 				enabled: row.querySelector('.rp-f-enabled').checked,
 				label: label,
 				icon: row.querySelector('.rp-f-icon').value.trim(),
-				playlistId: playlistId
+				playlistId: playlistId,
+				inviteUrl: row.querySelector('.rp-f-invite').value.trim()
 			});
 		}
 
@@ -175,20 +210,126 @@
 		syncJson();
 	});
 
-	if (initial && initial.length) {
-		for (var i = 0; i < initial.length; i++) {
-			addRow(initial[i]);
-		}
-	} else {
-		addRow({ enabled: true });
-	}
-
-	syncJson();
+	replaceRows(initial);
 
 	var form = jsonField.closest ? jsonField.closest('form') : null;
 	if (form) {
 		form.addEventListener('submit', syncJson);
 	}
+
+	// ---------------------------------------------------------------------
+	// Spotify: admin-only connect/disconnect, and "sync now" against the
+	// connected account's current playlists.
+	// ---------------------------------------------------------------------
+
+	var apiUrl = '[% webroot %][% rehearsalPlayerApiUrl %]';
+	var authBox = document.getElementById('rp-spotify-auth');
+	var syncButton = document.getElementById('rp-sync-playlists');
+	var syncStatus = document.getElementById('rp-sync-status');
+
+	function renderSpotifyAuth() {
+		if (!authBox) {
+			return;
+		}
+
+		var connected = authBox.getAttribute('data-connected') === '1';
+		var displayName = authBox.getAttribute('data-display-name') || '';
+		var html;
+
+		if (connected) {
+			html =
+				'<span class="rp-spotify-name">Connected as ' + escapeHtml(displayName) + '</span> ' +
+				'<button type="button" id="rp-spotify-disconnect" class="rp-add-row-btn">Disconnect</button>';
+		} else {
+			html = '<button type="button" id="rp-spotify-connect" class="rp-add-row-btn">Connect Spotify</button>';
+		}
+
+		authBox.innerHTML = html;
+
+		var connectBtn = document.getElementById('rp-spotify-connect');
+		if (connectBtn) {
+			connectBtn.addEventListener('click', connectSpotify);
+		}
+
+		var disconnectBtn = document.getElementById('rp-spotify-disconnect');
+		if (disconnectBtn) {
+			disconnectBtn.addEventListener('click', disconnectSpotify);
+		}
+
+		if (syncButton) {
+			syncButton.disabled = !connected;
+		}
+	}
+
+	function escapeHtml(value) {
+		var div = document.createElement('div');
+		div.textContent = value == null ? '' : String(value);
+		return div.innerHTML;
+	}
+
+	function connectSpotify() {
+		var popup = window.open(apiUrl + '?action=spotify_login', 'rpSpotifyLogin', 'width=480,height=760');
+
+		if (!popup) {
+			window.alert('Please allow pop-ups to connect Spotify.');
+			return;
+		}
+
+		var poll = window.setInterval(function () {
+			if (popup.closed) {
+				window.clearInterval(poll);
+				window.location.reload();
+			}
+		}, 800);
+	}
+
+	function disconnectSpotify() {
+		fetch(apiUrl + '?action=spotify_logout', { method: 'POST', credentials: 'same-origin' })
+			.then(function () {
+				window.location.reload();
+			});
+	}
+
+	function syncPlaylistsNow() {
+		if (!syncButton) {
+			return;
+		}
+
+		syncButton.disabled = true;
+		syncStatus.textContent = 'Syncing...';
+
+		fetch(apiUrl + '?action=spotify_sync_playlists', { method: 'POST', credentials: 'same-origin' })
+			.then(function (response) {
+				return response.json().then(function (data) {
+					if (!response.ok) {
+						throw data;
+					}
+					return data;
+				});
+			})
+			.then(function (data) {
+				replaceRows(data.playlists || []);
+				syncStatus.textContent = 'Added ' + (data.added || 0) + ', removed ' + (data.removed || 0) + '.';
+			})
+			.catch(function (error) {
+				syncStatus.textContent = (error && error.error) || 'Could not sync playlists from Spotify.';
+			})
+			.then(function () {
+				syncButton.disabled = false;
+			});
+	}
+
+	if (syncButton) {
+		syncButton.addEventListener('click', syncPlaylistsNow);
+	}
+
+	window.addEventListener('message', function (event) {
+		if (event.data && event.data.rehearsalPlayerSpotify) {
+			window.location.reload();
+		}
+	});
+
+	renderSpotifyAuth();
 })();
 </script>
 

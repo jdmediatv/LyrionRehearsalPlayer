@@ -8,15 +8,15 @@ https://raw.githubusercontent.com/jdmediatv/LyrionRehearsalPlayer/main/repo.xml
 		<title lang="EN">Jazzart Plugins</title>
 	</details>
 	<plugins>
-		<plugin name="RehearsalPlayer" version="1.1.6" minTarget="7.9" maxTarget="*">
+		<plugin name="RehearsalPlayer" version="1.1.7" minTarget="7.9" maxTarget="*">
 			<title lang="EN">Rehearsal Player</title>
 			<desc lang="EN">Dark, playlist-driven rehearsal playback with tutor/class filters, artwork playlist selection, large transport controls, quick jump presets, and a Spotify-backed teacher playlist section.</desc>
 			<category>tools</category>
-			<changes lang="EN">Bug fix: clicking a teacher playlist was sending the plugin's own internal row id to Spotify's API instead of the actual Spotify playlist id, causing every playlist load to fail with 400/403 regardless of how correctly it was configured in Settings. This was the real root cause behind the errors some admins were seeing even with a valid playlist link saved - now fixed.</changes>
+			<changes lang="EN">Connect/Disconnect Spotify has moved from the main kiosk screen into the plugin's Settings page and is now admin-only, so students and teachers using the kiosk can no longer sign in or out of Spotify themselves - they can still browse, search and add tracks using the connection an admin sets up once. Press and hold a teacher playlist button to pop up a QR code linking to that playlist (paste a "Share > Invite collaborators" link per row in Settings for the exact invite link; otherwise it falls back to the playlist's normal share link). Settings can now also sync the Teacher Playlists list against whatever playlists are actually visible in the connected Spotify account, automatically adding new ones and removing ones that disappear, both on connect and via a new "Sync Playlists Now" button.</changes>
 			<creator>Jazzart</creator>
 			<link>https://github.com/jdmediatv/LyrionRehearsalPlayer</link>
-			<url>https://raw.githubusercontent.com/jdmediatv/LyrionRehearsalPlayer/main/release-assets/RehearsalPlayer-1.1.6.zip</url>
-			<sha>cefeb47722024c74d67fe4a95534048e7985bacb</sha>
+			<url>https://raw.githubusercontent.com/jdmediatv/LyrionRehearsalPlayer/main/release-assets/RehearsalPlayer-1.1.7.zip</url>
+			<sha>8e9fda2d48e4ef406e3572f3ecef175c77f8c4e0</sha>
 		</plugin>
 	</plugins>
 </extensions>

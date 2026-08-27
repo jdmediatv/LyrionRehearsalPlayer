@@ -228,3 +228,33 @@ PLUGIN_REHEARSAL_PLAYER_TP_PLAYLIST
 
 PLUGIN_REHEARSAL_PLAYER_TP_ADD
 	EN	+ Add playlist
+
+PLUGIN_REHEARSAL_PLAYER_TP_INVITE_URL
+	EN	Invite Link (optional)
+
+PLUGIN_REHEARSAL_PLAYER_QR_HINT
+	EN	Scan with a phone camera to open this playlist in Spotify.
+
+PLUGIN_REHEARSAL_PLAYER_QR_CLOSE
+	EN	Close
+
+PLUGIN_REHEARSAL_PLAYER_SPOTIFY_SYNC
+	EN	Sync Playlists Now
+
+PLUGIN_REHEARSAL_PLAYER_SPOTIFY_SYNC_RESULT
+	EN	Sync complete
+
+PLUGIN_REHEARSAL_PLAYER_SPOTIFY_SYNC_FAILED
+	EN	Could not sync playlists from Spotify.
+
+PLUGIN_REHEARSAL_PLAYER_SPOTIFY_CONNECT_ADMIN_HELP
+	EN	Sign in once with the Spotify account whose playlists teachers should see and add to. Only this admin-connected account is used - students and teachers on the kiosk screen can add tracks, but cannot sign in or disconnect Spotify themselves.
+
+PLUGIN_REHEARSAL_PLAYER_TEACHER_PLAYLISTS_AUTOSYNC_DESC
+	EN	Whenever you connect Spotify or press "Sync Playlists Now", any playlist visible in the connected account that isn't listed below is added automatically (unchecked, so you can review it before it appears on the kiosk), and any row here whose playlist is no longer visible in that account is removed. You can still add a playlist by hand below using its link or ID.
+
+PLUGIN_REHEARSAL_PLAYER_SPOTIFY_ADMIN_ONLY
+	EN	Spotify sign-in is only available from this Settings page.
+
+PLUGIN_REHEARSAL_PLAYER_SPOTIFY_NOT_CONNECTED_ADMIN
+	EN	Spotify is not connected. Ask an administrator to connect it in the plugin's Settings page.

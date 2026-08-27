@@ -28,14 +28,20 @@ use constant MENU_PATH => 'plugins/RehearsalPlayer/index.html';
 use constant SLUG_PATH => 'jazzartplayer';
 use constant TABLET_SLUG_PATH => 'jazzartplayertablet';
 use constant API_PATH  => 'plugins/RehearsalPlayer/api';
-use constant SESSION_COOKIE => 'rp_spotify_sid';
+use constant SETTINGS_PATH => 'plugins/RehearsalPlayer/settings.html';
 
 my $serverprefs = preferences('server');
 my $pluginprefs = preferences('plugin.rehearsalplayer');
 
+# Spotify sign-in is admin-only: one shared connection (managed from the
+# plugin's Settings page) is used for every kiosk screen, rather than a
+# separate per-browser/per-teacher OAuth session. "spotifySessions" (the old
+# per-browser map) is no longer written, but is left out of init() deliberately
+# so any leftover data from before this change just stops being read, not
+# migrated.
 $pluginprefs->init({
-	teacherPlaylists    => [],
-	spotifySessions      => {},
+	teacherPlaylists     => [],
+	spotifyAdminSession  => undef,
 	spotifyPendingStates => {},
 	spotifyClientId      => '',
 	spotifyClientSecret  => '',
@@ -129,6 +135,9 @@ sub handleApi {
 	if ($action eq 'spotify_add_track') {
 		return _handleSpotifyAddTrack($httpClient, $response, $request);
 	}
+	if ($action eq 'spotify_sync_playlists') {
+		return _handleSpotifySyncPlaylists($httpClient, $response, $request);
+	}
 
 	my $client = _getClientFromRequest($request);
 	my $result;
@@ -163,6 +172,15 @@ sub _handleSpotifyLogin {
 
 	if (!Plugins::RehearsalPlayer::Spotify::isConfigured()) {
 		return _sendJson($httpClient, $response, { error => string('PLUGIN_REHEARSAL_PLAYER_SPOTIFY_NOT_CONFIGURED') }, 400);
+	}
+
+	# Sign-in is admin-only: only reachable from the plugin's Settings page,
+	# not from the public kiosk screen. This is a soft check (a Referer
+	# header can be spoofed by anyone crafting raw HTTP requests) but it's
+	# enough to stop a student from stumbling onto this URL and hijacking
+	# the shared Spotify connection from the kiosk browser.
+	if (!_requestIsFromSettingsPage($request)) {
+		return _sendJson($httpClient, $response, { error => string('PLUGIN_REHEARSAL_PLAYER_SPOTIFY_ADMIN_ONLY') }, 403);
 	}
 
 	my $callbackBase = _apiBaseUrl($request);
@@ -201,10 +219,7 @@ sub _handleSpotifyCallback {
 			Plugins::RehearsalPlayer::Spotify::getMe($tokenData->{access_token}, sub {
 				my ($profile) = @_;
 
-				my $sessionId = _newSessionId();
-				my $sessions  = $pluginprefs->get('spotifySessions') || {};
-
-				$sessions->{$sessionId} = {
+				my $adminSession = {
 					access_token    => $tokenData->{access_token},
 					refresh_token   => $tokenData->{refresh_token},
 					expires_at      => time() + ($tokenData->{expires_in} || 3600),
@@ -212,10 +227,15 @@ sub _handleSpotifyCallback {
 					spotify_user_id => $profile->{id},
 				};
 
-				$pluginprefs->set('spotifySessions', $sessions);
-				_setSessionCookie($response, $sessionId);
+				$pluginprefs->set('spotifyAdminSession', $adminSession);
 
-				_sendHtml($httpClient, $response, _spotifyResultPage(1, $sessions->{$sessionId}{display_name}));
+				# Auto-sync the teacher playlist list against whatever is now
+				# visible in the newly-connected account, so the admin doesn't
+				# have to also remember to press "Sync Playlists Now" the
+				# first time they connect.
+				_syncTeacherPlaylistsFromSpotify(sub {}, sub {});
+
+				_sendHtml($httpClient, $response, _spotifyResultPage(1, $adminSession->{display_name}));
 			}, sub {
 				my ($errMsg) = @_;
 				_sendHtml($httpClient, $response, _spotifyResultPage(0, $errMsg));
@@ -231,15 +251,12 @@ sub _handleSpotifyCallback {
 sub _handleSpotifyLogout {
 	my ($httpClient, $response, $request) = @_;
 
-	my $sessionId = _getSessionIdFromRequest($request);
-
-	if ($sessionId) {
-		my $sessions = $pluginprefs->get('spotifySessions') || {};
-		delete $sessions->{$sessionId};
-		$pluginprefs->set('spotifySessions', $sessions);
+	if (!_requestIsFromSettingsPage($request)) {
+		return _sendJson($httpClient, $response, { error => string('PLUGIN_REHEARSAL_PLAYER_SPOTIFY_ADMIN_ONLY') }, 403);
 	}
 
-	$response->header('Set-Cookie' => SESSION_COOKIE . '=; Path=/; Max-Age=0');
+	$pluginprefs->set('spotifyAdminSession', undef);
+
 	_sendJson($httpClient, $response, { ok => 1 });
 }
 
@@ -303,14 +320,6 @@ sub _handleSpotifySearch {
 sub _handleSpotifyAddTrack {
 	my ($httpClient, $response, $request) = @_;
 
-	my $sessionId = _getSessionIdFromRequest($request);
-	my $sessions  = $pluginprefs->get('spotifySessions') || {};
-	my $session   = $sessionId ? $sessions->{$sessionId} : undef;
-
-	if (!$session) {
-		return _sendJson($httpClient, $response, { error => string('PLUGIN_REHEARSAL_PLAYER_SPOTIFY_SIGN_IN_REQUIRED') }, 401);
-	}
-
 	my $body = eval { from_json($request->content || '{}') } || {};
 	my $playlistId = $body->{playlistId};
 	my $trackUri   = $body->{trackUri};
@@ -319,11 +328,16 @@ sub _handleSpotifyAddTrack {
 		return _sendJson($httpClient, $response, { error => string('PLUGIN_REHEARSAL_PLAYER_INVALID_REQUEST') }, 400);
 	}
 
+	my $session = _adminSession();
+
+	if (!$session) {
+		return _sendJson($httpClient, $response, { error => string('PLUGIN_REHEARSAL_PLAYER_SPOTIFY_NOT_CONNECTED_ADMIN') }, 401);
+	}
+
 	Plugins::RehearsalPlayer::Spotify::ensureUserToken($session, sub {
 		my ($token, $updatedSession) = @_;
 
-		$sessions->{$sessionId} = $updatedSession;
-		$pluginprefs->set('spotifySessions', $sessions);
+		$pluginprefs->set('spotifyAdminSession', $updatedSession);
 
 		Plugins::RehearsalPlayer::Spotify::addTrackToPlaylist(
 			playlistId  => $playlistId,
@@ -343,23 +357,52 @@ sub _handleSpotifyAddTrack {
 	});
 }
 
-# Resolves the best access token to use for a *read* call: the signed-in
-# teacher's own token if this browser has one (refreshing it first if it's
-# stale), otherwise the plugin's app-level (Client Credentials) token, which
-# can read public playlists and the search catalog but cannot see private /
+sub _handleSpotifySyncPlaylists {
+	my ($httpClient, $response, $request) = @_;
+
+	if (!_requestIsFromSettingsPage($request)) {
+		return _sendJson($httpClient, $response, { error => string('PLUGIN_REHEARSAL_PLAYER_SPOTIFY_ADMIN_ONLY') }, 403);
+	}
+
+	if (!_adminSession()) {
+		return _sendJson($httpClient, $response, { error => string('PLUGIN_REHEARSAL_PLAYER_SPOTIFY_NOT_CONNECTED_ADMIN') }, 401);
+	}
+
+	_syncTeacherPlaylistsFromSpotify(sub {
+		my ($summary) = @_;
+		_sendJson($httpClient, $response, {
+			ok        => 1,
+			added     => $summary->{added},
+			removed   => $summary->{removed},
+			playlists => $pluginprefs->get('teacherPlaylists') || [],
+		});
+	}, sub {
+		my ($errMsg) = @_;
+		_sendJson($httpClient, $response, { error => $errMsg }, 502);
+	});
+}
+
+# The single admin-connected Spotify session, if there is one and it hasn't
+# been explicitly cleared. There is only ever one of these now - see the
+# comment above spotifyAdminSession in initPlugin().
+sub _adminSession {
+	return $pluginprefs->get('spotifyAdminSession');
+}
+
+# Resolves the best access token to use for a *read* call: the admin's own
+# token if Spotify is connected (refreshing it first if it's stale),
+# otherwise the plugin's app-level (Client Credentials) token, which can read
+# public playlists and the search catalog but cannot see private /
 # collaborative playlists it hasn't been shared with.
 sub _withBestToken {
 	my ($request, $cb) = @_;
 
-	my $sessionId = _getSessionIdFromRequest($request);
-	my $sessions  = $pluginprefs->get('spotifySessions') || {};
-	my $session   = $sessionId ? $sessions->{$sessionId} : undef;
+	my $session = _adminSession();
 
 	if ($session && $session->{refresh_token}) {
 		Plugins::RehearsalPlayer::Spotify::ensureUserToken($session, sub {
 			my ($token, $updatedSession) = @_;
-			$sessions->{$sessionId} = $updatedSession;
-			$pluginprefs->set('spotifySessions', $sessions);
+			$pluginprefs->set('spotifyAdminSession', $updatedSession);
 			$cb->($token);
 		}, sub {
 			Plugins::RehearsalPlayer::Spotify::appToken($cb, sub { $cb->(undef) });
@@ -373,8 +416,7 @@ sub _withBestToken {
 sub _buildSpotifyStateBlock {
 	my ($request) = @_;
 
-	my $sessionId = _getSessionIdFromRequest($request);
-	my $session   = $sessionId ? ($pluginprefs->get('spotifySessions') || {})->{$sessionId} : undef;
+	my $session = _adminSession();
 
 	return {
 		configured   => Plugins::RehearsalPlayer::Spotify::isConfigured(),
@@ -399,8 +441,72 @@ sub _visibleTeacherPlaylists {
 			label      => $_->{label},
 			icon       => $_->{icon},
 			playlistId => $_->{playlistId},
+			inviteUrl  => $_->{inviteUrl},
 		}
 	} @visible ];
+}
+
+# ---------------------------------------------------------------------------
+# Spotify: keep the Teacher Playlists list in sync with what's actually
+# visible in the admin-connected account - add anything new (disabled by
+# default so the admin can review it before it shows up on the kiosk), and
+# drop any row whose playlist the account can no longer see (removed,
+# unshared, or the account was switched).
+# ---------------------------------------------------------------------------
+
+sub _syncTeacherPlaylistsFromSpotify {
+	my ($cbOk, $cbErr) = @_;
+	$cbErr ||= sub {};
+
+	my $session = _adminSession();
+	if (!$session) {
+		return $cbErr->(string('PLUGIN_REHEARSAL_PLAYER_SPOTIFY_NOT_CONNECTED_ADMIN'));
+	}
+
+	Plugins::RehearsalPlayer::Spotify::ensureUserToken($session, sub {
+		my ($token, $updatedSession) = @_;
+		$pluginprefs->set('spotifyAdminSession', $updatedSession);
+
+		Plugins::RehearsalPlayer::Spotify::getUserPlaylists(
+			accessToken => $token,
+			cbOk        => sub {
+				my ($data) = @_;
+				my $remote = $data->{playlists} || [];
+				my %remoteById = map { $_->{id} => $_ } @$remote;
+
+				my $existing = $pluginprefs->get('teacherPlaylists') || [];
+				my %seenIds  = map { ($_->{playlistId} || '') => 1 } @$existing;
+
+				# Keep every existing row whose playlist is still visible in
+				# the account; anything else is gone from Spotify's side.
+				my @kept    = grep { $remoteById{ $_->{playlistId} || '' } } @$existing;
+				my $removed = scalar(@$existing) - scalar(@kept);
+
+				my @added;
+				for my $remotePlaylist (@$remote) {
+					next if $seenIds{ $remotePlaylist->{id} };
+
+					push @added, {
+						id         => _newPlaylistRowId(),
+						label      => $remotePlaylist->{name} || $remotePlaylist->{id},
+						icon       => '',
+						playlistId => $remotePlaylist->{id},
+						inviteUrl  => '',
+						enabled    => 0,
+					};
+				}
+
+				my @merged = (@kept, @added);
+				my $order  = 0;
+				$_->{sortOrder} = $order++ for @merged;
+
+				$pluginprefs->set('teacherPlaylists', \@merged);
+
+				$cbOk->({ added => scalar(@added), removed => $removed });
+			},
+			cbErr => $cbErr,
+		);
+	}, $cbErr);
 }
 
 # True when a Spotify-capable audio source plugin (e.g. the community
@@ -485,30 +591,26 @@ sub _spotifyResultPage {
 HTML
 }
 
-sub _getSessionIdFromRequest {
-	my ($request) = @_;
-
-	my $cookieHeader = $request->header('Cookie') or return undef;
-	my $cookies = { CGI::Cookie->parse($cookieHeader) };
-	my $cookie = $cookies->{ SESSION_COOKIE() };
-
-	return $cookie ? $cookie->value : undef;
-}
-
-sub _newSessionId {
-	my @chars = ('a' .. 'z', 'A' .. 'Z', 0 .. 9);
+# Mirrors Settings::_newId() - kept as a separate local copy rather than
+# calling into Settings.pm, since that module is only require()'d when
+# main::WEBUI is true (see initPlugin above) and this needs to work
+# regardless.
+sub _newPlaylistRowId {
+	my @chars = ('a' .. 'z', 0 .. 9);
 	my $id = '';
-	$id .= $chars[int(rand(scalar @chars))] for 1 .. 40;
+	$id .= $chars[int(rand(scalar @chars))] for 1 .. 12;
 	return $id;
 }
 
-sub _setSessionCookie {
-	my ($response, $sessionId) = @_;
+# True when $request's Referer header points at this plugin's Settings page.
+# Used as a soft guard to keep Spotify sign-in/out and the playlist-sync
+# button reachable only from Settings, not from the public kiosk screen -
+# see the comment in _handleSpotifyLogin for the caveats of this approach.
+sub _requestIsFromSettingsPage {
+	my ($request) = @_;
 
-	# ~180 days. HttpOnly is deliberately not set on some LMS builds' cookie
-	# jars this would break same-site fetch(); Path=/ keeps it scoped to
-	# this server only.
-	$response->header('Set-Cookie' => SESSION_COOKIE() . "=$sessionId; Path=/; Max-Age=15552000");
+	my $referer = $request->header('Referer') || $request->header('Referrer') || '';
+	return $referer =~ m{\Q@{[ SETTINGS_PATH ]}\E}i ? 1 : 0;
 }
 
 sub _apiBaseUrl {

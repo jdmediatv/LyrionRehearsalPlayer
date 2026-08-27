@@ -311,6 +311,43 @@ sub getMe {
 	_apiGet(API_BASE . '/me', $accessToken, $cbOk, $cbErr);
 }
 
+# Fetches every playlist visible to the given account (owned, followed, or
+# shared with it) - used to auto-sync the admin's connected account against
+# the Teacher Playlists list in Settings. Spotify pages this 50 at a time;
+# we follow "next" until it runs out, so an account with a lot of playlists
+# means a handful of extra requests, not extra code at the call site.
+sub getUserPlaylists {
+	my (%args) = @_;
+	my $accessToken = $args{accessToken};
+	my $cbOk        = $args{cbOk}  || sub {};
+	my $cbErr       = $args{cbErr} || sub {};
+
+	my @collected;
+	my $fetchPage;
+
+	$fetchPage = sub {
+		my ($url) = @_;
+
+		_apiGet($url, $accessToken, sub {
+			my ($data) = @_;
+			push @collected, @{ $data->{items} || [] };
+
+			if ($data->{next}) {
+				$fetchPage->($data->{next});
+			}
+			else {
+				my @playlists = map {
+					{ id => $_->{id}, name => $_->{name} }
+				} grep { $_ && $_->{id} } @collected;
+
+				$cbOk->({ playlists => \@playlists });
+			}
+		}, $cbErr);
+	};
+
+	$fetchPage->(API_BASE . '/me/playlists?' . _buildQuery({ limit => 50 }));
+}
+
 sub getPlaylistTracks {
 	my (%args) = @_;
 	my $playlistId  = $args{playlistId};
