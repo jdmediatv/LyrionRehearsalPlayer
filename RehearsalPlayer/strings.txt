@@ -14,7 +14,7 @@ PLUGIN_REHEARSAL_PLAYER_PLAYER
 	EN	Player
 
 PLUGIN_REHEARSAL_PLAYER_PLAYLISTS
-	EN	Playlists
+	EN	Show Playlists
 
 PLUGIN_REHEARSAL_PLAYER_PLAYLIST_TRACKS
 	EN	tracks shown
@@ -212,7 +212,7 @@ PLUGIN_REHEARSAL_PLAYER_TEACHER_PLAYLISTS_TITLE
 	EN	Teacher Playlists
 
 PLUGIN_REHEARSAL_PLAYER_TEACHER_PLAYLISTS_DESC
-	EN	These appear as a static list to the left of the playlist view. Paste each teacher's Spotify playlist link (or just its ID) and make sure that playlist's "Collaborative" setting is turned on in Spotify so other teachers can add to it.
+	EN	These appear in their own section below Show Playlists. Paste each teacher's Spotify playlist link (or just its ID) and make sure that playlist's "Collaborative" setting is turned on in Spotify so other teachers can add to it.
 
 PLUGIN_REHEARSAL_PLAYER_TP_ENABLED
 	EN	Show

@@ -1,6 +1,6 @@
 # Rehearsal Player
 
-Native Lyrion Music Server plugin for rehearsal spaces, with playlist artwork selection, tile-based track launching, metadata filters, large transport controls, player volume control, and (as of 1.1.0) a Spotify-backed teacher playlist sidebar.
+Native Lyrion Music Server plugin for rehearsal spaces, with playlist artwork selection, tile-based track launching, metadata filters, large transport controls, player volume control, and (as of 1.1.1) a Spotify-backed teacher playlist section.
 
 ## Features
 
@@ -14,7 +14,7 @@ Native Lyrion Music Server plugin for rehearsal spaces, with playlist artwork se
 - Percentage jump presets from `0%` to `85%`
 - Volume slider for the selected player
 - Dark UI with purple-accent styling
-- A static sidebar of admin-configured teacher playlists, backed by the
+- A dedicated section of admin-configured teacher playlists, backed by the
   official Spotify Web API, so any teacher can browse a playlist and add
   tracks to it from their own Spotify account (see below)
 
@@ -48,7 +48,7 @@ Premium account - see `SPOTIFY_SETUP.md` for details.
 
 ### Manual install
 
-1. Download `RehearsalPlayer-1.1.0.zip`.
+1. Download `RehearsalPlayer-1.1.1.zip`.
 2. Extract it into your LMS plugins directory so the final path is:
 
    `Plugins/RehearsalPlayer/`
@@ -70,8 +70,8 @@ Premium account - see `SPOTIFY_SETUP.md` for details.
 
 ## Repository Contents
 
-- `RehearsalPlayer-1.1.0.zip`: installable plugin package
-- `RehearsalPlayer-1.1.0.sha1`: SHA1 checksum for LMS repository installs
+- `RehearsalPlayer-1.1.1.zip`: installable plugin package
+- `RehearsalPlayer-1.1.1.sha1`: SHA1 checksum for LMS repository installs
 - `repo.xml`: Lyrion repository definition
 - `GITHUB_RELEASE.md`: release text and publish checklist
 - `SPOTIFY_SETUP.md`: step-by-step Spotify integration setup guide
@@ -84,11 +84,11 @@ Premium account - see `SPOTIFY_SETUP.md` for details.
 
    `https://raw.githubusercontent.com/jdmediatv/LyrionRehearsalPlayer/main/repo.xml`
 
-3. Create GitHub release tag `v1.1.0`.
+3. Create GitHub release tag `v1.1.1`.
 4. Upload:
 
-   - `RehearsalPlayer-1.1.0.zip`
-   - `RehearsalPlayer-1.1.0.sha1`
+   - `RehearsalPlayer-1.1.1.zip`
+   - `RehearsalPlayer-1.1.1.sha1`
 
 5. Test the release asset URL in `repo.xml`.
 6. Test the raw `repo.xml` URL from a Lyrion install.

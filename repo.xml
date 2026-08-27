@@ -8,15 +8,15 @@ https://raw.githubusercontent.com/jdmediatv/LyrionRehearsalPlayer/main/repo.xml
 		<title lang="EN">Jazzart Plugins</title>
 	</details>
 	<plugins>
-		<plugin name="RehearsalPlayer" version="1.1.0" minTarget="7.9" maxTarget="*">
+		<plugin name="RehearsalPlayer" version="1.1.1" minTarget="7.9" maxTarget="*">
 			<title lang="EN">Rehearsal Player</title>
-			<desc lang="EN">Dark, playlist-driven rehearsal playback with tutor/class filters, artwork playlist selection, large transport controls, quick jump presets, and a Spotify-backed teacher playlist sidebar.</desc>
+			<desc lang="EN">Dark, playlist-driven rehearsal playback with tutor/class filters, artwork playlist selection, large transport controls, quick jump presets, and a Spotify-backed teacher playlist section.</desc>
 			<category>tools</category>
-			<changes lang="EN">Added a static teacher playlist sidebar backed by the official Spotify Web API: browse and (with playback plugins such as Spotty) play a teacher's Spotify playlist, connect your own Spotify account to search and add tracks to any collaborative playlist shown, and administer playlists/icons/links from the plugin settings page.</changes>
+			<changes lang="EN">UI update: the playlist panel is now labelled "Show Playlists", and Teacher Playlists has moved from a side column into its own full-width section directly below it, matching the existing playlist strip styling.</changes>
 			<creator>Jazzart</creator>
 			<link>https://github.com/jdmediatv/LyrionRehearsalPlayer</link>
-			<url>https://raw.githubusercontent.com/jdmediatv/LyrionRehearsalPlayer/main/release-assets/RehearsalPlayer-1.1.0.zip</url>
-			<sha>52eb60221f29cff86e08fa79ee8d860ee68bf1db</sha>
+			<url>https://raw.githubusercontent.com/jdmediatv/LyrionRehearsalPlayer/main/release-assets/RehearsalPlayer-1.1.1.zip</url>
+			<sha>0b8e274a23f4187729e32ced260cb6af5c197fa7</sha>
 		</plugin>
 	</plugins>
 </extensions>

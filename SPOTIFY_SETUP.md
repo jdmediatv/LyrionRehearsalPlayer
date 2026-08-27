@@ -1,7 +1,7 @@
 # Spotify Setup
 
 Rehearsal Player can show each teacher's Spotify playlist in a static
-sidebar, let any teacher browse it, and let any teacher add tracks to it
+section, let any teacher browse it, and let any teacher add tracks to it
 from their own Spotify account (their account just needs to be a member of
 a *collaborative* Spotify playlist - no shared password required).
 
@@ -68,7 +68,7 @@ fill in:
 
 ## 4. Set up each teacher's playlist
 
-For every playlist that should appear in the sidebar:
+For every playlist that should appear in the Teacher Playlists section:
 
 1. In Spotify, open the playlist and turn on **Collaborative** in its
    settings (the playlist's three-dot menu). This is what allows other
@@ -81,8 +81,8 @@ For every playlist that should appear in the sidebar:
    direct image URL.
 4. Save.
 
-The playlist will now appear in the static sidebar for every teacher using
-the app. Anyone who clicks **Connect Spotify** in that sidebar and signs
+The playlist will now appear in the Teacher Playlists section for every teacher using
+the app. Anyone who clicks **Connect Spotify** there and signs
 in with their own Spotify account can then search for and add tracks to
 any playlist shown there that they've been given collaborative access to.
 
@@ -95,7 +95,7 @@ needs a Spotify-capable playback plugin installed and configured with a
 Spotify Premium account - the community **Spotty** plugin
 (<https://github.com/michaelherger/lms-spotty>) is the standard choice.
 
-Without it, the sidebar and add-to-playlist features still work fully;
+Without it, the Teacher Playlists section and add-to-playlist features still work fully;
 Rehearsal Player will simply show a message instead of trying to play a
 Spotify track, and local library playlists are completely unaffected
 either way.
