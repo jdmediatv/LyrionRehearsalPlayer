@@ -1,34 +1,38 @@
-# Rehearsal Player v1.1.8
+# Rehearsal Player v1.1.9
 
-Tag: `v1.1.8`
+Tag: `v1.1.9`
 
 Release title:
 
-`Rehearsal Player v1.1.8`
+`Rehearsal Player v1.1.9`
 
 Assets to upload:
 
-- `RehearsalPlayer-1.1.8.zip`
-- `RehearsalPlayer-1.1.8.sha1`
+- `RehearsalPlayer-1.1.9.zip`
+- `RehearsalPlayer-1.1.9.sha1`
 
 Suggested release body:
 
 ```md
 Rehearsal Player is a native Lyrion Music Server plugin built for rehearsal spaces.
 
-New in v1.1.8:
+New in v1.1.9:
 
-- The Spotify search-and-add box is now a popup instead of an inline
-  panel, styled to look like a proper Spotify search UI: dark theme,
-  green accents, rounded search bar, and album art thumbnails on each
-  result. It opens from a new "+ Add Tracks" button that appears next to
-  Teacher Playlists whenever you're browsing one.
-- Fixed a bug where adding a track and then refreshing the playlist you
-  were browsing could send Spotify the plugin's internal row id instead
-  of the real playlist id - the same class of bug fixed for playlist
-  loading in 1.1.6, just in the add-track refresh path this time.
+- Added a built-in on-screen keyboard to the Spotify search popup, since
+  the kiosk is a touchscreen with no physical keyboard attached. The
+  search field now suppresses the device's own software keyboard so this
+  one is the only keyboard that appears - QWERTY layout with shift,
+  backspace, a 123/ABC toggle for numbers and punctuation, and a Done key.
 
 Also included from prior releases:
+
+- The Spotify search-and-add box is a popup styled like a proper Spotify
+  search UI: dark theme, green accents, rounded search bar, and album
+  art thumbnails on each result, opened via a "+ Add Tracks" button next
+  to Teacher Playlists (1.1.8).
+- Fixed a bug where adding a track and refreshing the open playlist could
+  send Spotify the plugin's internal row id instead of the real playlist
+  id (1.1.8).
 
 - Spotify Connect/Disconnect moved off the main kiosk screen and into the
   plugin's Settings page, and sign-in is now admin-only: one shared
@@ -60,15 +64,15 @@ Also included from prior releases:
 
 Install options:
 
-- Manual install: download `RehearsalPlayer-1.1.8.zip` and extract the `RehearsalPlayer` folder into your LMS plugins directory
+- Manual install: download `RehearsalPlayer-1.1.9.zip` and extract the `RehearsalPlayer` folder into your LMS plugins directory
 - Repository install: add the hosted `repo.xml` URL to LMS plugin repositories (existing installs using this method will offer the update automatically)
 ```
 
 Publish checklist:
 
-1. Commit `repo.xml`, `release-assets/RehearsalPlayer-1.1.8.zip`, and `release-assets/RehearsalPlayer-1.1.8.sha1` to `jdmediatv/LyrionRehearsalPlayer` main.
-2. Create release tag `v1.1.8`.
-3. Upload `RehearsalPlayer-1.1.8.zip` and `RehearsalPlayer-1.1.8.sha1` as release assets (optional - the raw `release-assets/` copy in the repo is what `repo.xml` actually points to and is sufficient for installs to update).
+1. Commit `repo.xml`, `release-assets/RehearsalPlayer-1.1.9.zip`, and `release-assets/RehearsalPlayer-1.1.9.sha1` to `jdmediatv/LyrionRehearsalPlayer` main.
+2. Create release tag `v1.1.9`.
+3. Upload `RehearsalPlayer-1.1.9.zip` and `RehearsalPlayer-1.1.9.sha1` as release assets (optional - the raw `release-assets/` copy in the repo is what `repo.xml` actually points to and is sufficient for installs to update).
 4. Test the final asset URL from `repo.xml`.
 5. Confirm existing installs pick up the update: Settings -> Plugins in LMS will offer it if "Update plugins automatically" is off, or install it automatically on next restart if that option is on.
 

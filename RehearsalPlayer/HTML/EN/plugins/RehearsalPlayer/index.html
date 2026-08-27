@@ -197,8 +197,8 @@
 		border-radius: 14px;
 		box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
 		display: grid;
-		grid-template-rows: auto auto minmax(0, 1fr);
-		max-height: 78vh;
+		grid-template-rows: auto auto minmax(0, 1fr) auto;
+		max-height: 86vh;
 		overflow: hidden;
 		position: relative;
 		width: min(480px, 92vw);
@@ -392,6 +392,69 @@
 	.rehearsal-player__spotifyAddButton:disabled {
 		cursor: default;
 		opacity: 0.7;
+	}
+
+	.rehearsal-player__keyboard {
+		background: #1a1a1a;
+		border-top: 1px solid #282828;
+		display: grid;
+		gap: 6px;
+		padding: 8px 6px calc(8px + env(safe-area-inset-bottom, 0px));
+		user-select: none;
+	}
+
+	.rehearsal-player__keyboardRow {
+		display: flex;
+		gap: 5px;
+	}
+
+	.rehearsal-player__keyboardKey {
+		-webkit-tap-highlight-color: transparent;
+		-webkit-touch-callout: none;
+		-webkit-user-select: none;
+		background: #333333;
+		border: none;
+		border-radius: 6px;
+		color: #ffffff;
+		flex: 1 1 0;
+		font-size: 14px;
+		height: 40px;
+		min-width: 0;
+		padding: 0;
+		touch-action: manipulation;
+		user-select: none;
+	}
+
+	.rehearsal-player__keyboardKey:active {
+		background: #4a4a4a;
+	}
+
+	.rehearsal-player__keyboardKey.is-active {
+		background: #565656;
+	}
+
+	.rehearsal-player__keyboardKey--wide {
+		flex: 1.6 1 0;
+		font-size: 12px;
+	}
+
+	.rehearsal-player__keyboardKey--space {
+		flex: 5 1 0;
+	}
+
+	.rehearsal-player__keyboardKey.is-primary {
+		background: #1ed760;
+		color: #06130a;
+		font-weight: 700;
+	}
+
+	.rehearsal-player.is-tablet .rehearsal-player__keyboardKey {
+		font-size: 18px;
+		height: 48px;
+	}
+
+	.rehearsal-player.is-tablet .rehearsal-player__keyboardKey--wide {
+		font-size: 14px;
 	}
 
 	.rehearsal-player__panel {
@@ -1217,9 +1280,10 @@
 		</div>
 		<div class="rehearsal-player__spotifySearchRow">
 			<span class="rehearsal-player__spotifySearchIcon"></span>
-			<input type="text" id="rp-spotify-search-input" placeholder="[% "PLUGIN_REHEARSAL_PLAYER_SPOTIFY_SEARCH_PLACEHOLDER" | string | html %]" />
+			<input type="text" id="rp-spotify-search-input" inputmode="none" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="[% "PLUGIN_REHEARSAL_PLAYER_SPOTIFY_SEARCH_PLACEHOLDER" | string | html %]" />
 		</div>
 		<div id="rp-spotify-results" class="rehearsal-player__spotifyResults"></div>
+		<div id="rp-spotify-keyboard" class="rehearsal-player__keyboard"></div>
 	</div>
 </div>
 
@@ -1263,6 +1327,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
 		spotifyNotConfigured: "[% "PLUGIN_REHEARSAL_PLAYER_SPOTIFY_NOT_CONFIGURED" | string | html | replace('"', '\"') %]",
 		spotifyAdd: "[% "PLUGIN_REHEARSAL_PLAYER_SPOTIFY_ADD" | string | html | replace('"', '\"') %]",
 		spotifyAddTracks: "[% "PLUGIN_REHEARSAL_PLAYER_SPOTIFY_ADD_TRACKS" | string | html | replace('"', '\"') %]",
+		spotifyKeyboardDone: "[% "PLUGIN_REHEARSAL_PLAYER_SPOTIFY_KEYBOARD_DONE" | string | html | replace('"', '\"') %]",
 		spotifyAdded: "[% "PLUGIN_REHEARSAL_PLAYER_SPOTIFY_ADDED" | string | html | replace('"', '\"') %]",
 		spotifyAddFailed: "[% "PLUGIN_REHEARSAL_PLAYER_SPOTIFY_ADD_FAILED" | string | html | replace('"', '\"') %]",
 		spotifyNoResults: "[% "PLUGIN_REHEARSAL_PLAYER_SPOTIFY_NO_RESULTS" | string | html | replace('"', '\"') %]",
@@ -1293,6 +1358,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
 			spotifyModalClose: document.getElementById('rp-spotify-modal-close'),
 			spotifySearchInput: document.getElementById('rp-spotify-search-input'),
 			spotifyResults: document.getElementById('rp-spotify-results'),
+			spotifyKeyboard: document.getElementById('rp-spotify-keyboard'),
 			qrModal: document.getElementById('rp-qr-modal'),
 			qrBackdrop: document.getElementById('rp-qr-backdrop'),
 			qrTitle: document.getElementById('rp-qr-title'),
@@ -1814,9 +1880,17 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
 		elements.spotifyResults.innerHTML = '';
 		elements.spotifySearchInput.value = '';
 
+		keyboardMode = 'letters';
+		keyboardShift = false;
+		renderKeyboard();
+
 		elements.spotifyModal.classList.add('is-visible');
 		elements.spotifyModal.setAttribute('aria-hidden', 'false');
 
+		// inputmode="none" on the field (see index.html) keeps a device's own
+		// software keyboard from popping up underneath/alongside ours, so
+		// focusing it here just gets the caret and blinking cursor, not a
+		// second keyboard.
 		window.setTimeout(function () {
 			elements.spotifySearchInput.focus();
 		}, 50);
@@ -1825,6 +1899,164 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
 	function hideSpotifyModal() {
 		elements.spotifyModal.classList.remove('is-visible');
 		elements.spotifyModal.setAttribute('aria-hidden', 'true');
+	}
+
+	// -----------------------------------------------------------------
+	// On-screen keyboard for the Spotify search box. The kiosk is a
+	// touchscreen with no attached physical keyboard, and inputmode="none"
+	// on the search field (see index.html) deliberately suppresses the
+	// device's own software keyboard so this one is the only way to type -
+	// that also keeps the layout predictable across whatever tablet/browser
+	// this ends up running on.
+	// -----------------------------------------------------------------
+
+	var KEYBOARD_LAYOUTS = {
+		letters: [
+			['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'],
+			['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l'],
+			['shift', 'z', 'x', 'c', 'v', 'b', 'n', 'm', 'backspace'],
+			['123', 'space', 'done']
+		],
+		symbols: [
+			['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'],
+			['-', '/', ':', ';', '(', ')', '&', '@', '"'],
+			['\'', '.', ',', '?', '!', 'backspace'],
+			['ABC', 'space', 'done']
+		]
+	};
+
+	var keyboardMode = 'letters';
+	var keyboardShift = false;
+
+	function renderKeyboard() {
+		if (!elements.spotifyKeyboard) {
+			return;
+		}
+
+		var rows = KEYBOARD_LAYOUTS[keyboardMode] || KEYBOARD_LAYOUTS.letters;
+		var html = [];
+
+		for (var r = 0; r < rows.length; r++) {
+			html.push('<div class="rehearsal-player__keyboardRow">');
+			for (var c = 0; c < rows[r].length; c++) {
+				html.push(renderKeyboardKey(rows[r][c]));
+			}
+			html.push('</div>');
+		}
+
+		elements.spotifyKeyboard.innerHTML = html.join('');
+
+		var keys = elements.spotifyKeyboard.querySelectorAll('[data-key]');
+		for (var i = 0; i < keys.length; i++) {
+			keys[i].addEventListener('click', function (event) {
+				handleKeyboardKey(event.currentTarget.getAttribute('data-key'));
+			});
+		}
+	}
+
+	function renderKeyboardKey(key) {
+		var label = key;
+		var className = 'rehearsal-player__keyboardKey';
+
+		if (key === 'backspace') {
+			label = '\u232B';
+			className += ' rehearsal-player__keyboardKey--wide';
+		}
+		else if (key === 'shift') {
+			label = '\u21E7';
+			className += ' rehearsal-player__keyboardKey--wide' + (keyboardShift ? ' is-active' : '');
+		}
+		else if (key === 'space') {
+			label = '';
+			className += ' rehearsal-player__keyboardKey--space';
+		}
+		else if (key === 'done') {
+			label = text.spotifyKeyboardDone;
+			className += ' rehearsal-player__keyboardKey--wide is-primary';
+		}
+		else if (key === '123' || key === 'ABC') {
+			className += ' rehearsal-player__keyboardKey--wide';
+		}
+		else if (keyboardMode === 'letters' && keyboardShift) {
+			label = key.toUpperCase();
+		}
+
+		return '<button type="button" class="' + className + '" data-key="' + escapeText(key) + '">' + escapeText(label) + '</button>';
+	}
+
+	function handleKeyboardKey(key) {
+		var input = elements.spotifySearchInput;
+		if (!input) {
+			return;
+		}
+
+		if (key === 'backspace') {
+			var start = input.selectionStart != null ? input.selectionStart : input.value.length;
+			var end = input.selectionEnd != null ? input.selectionEnd : input.value.length;
+			if (start === end && start > 0) {
+				input.value = input.value.slice(0, start - 1) + input.value.slice(start);
+				setKeyboardCaret(input, start - 1);
+			}
+			else if (start !== end) {
+				input.value = input.value.slice(0, start) + input.value.slice(end);
+				setKeyboardCaret(input, start);
+			}
+		}
+		else if (key === 'space') {
+			insertAtKeyboardCaret(input, ' ');
+		}
+		else if (key === 'shift') {
+			keyboardShift = !keyboardShift;
+			renderKeyboard();
+			input.focus();
+			return;
+		}
+		else if (key === '123') {
+			keyboardMode = 'symbols';
+			renderKeyboard();
+			input.focus();
+			return;
+		}
+		else if (key === 'ABC') {
+			keyboardMode = 'letters';
+			renderKeyboard();
+			input.focus();
+			return;
+		}
+		else if (key === 'done') {
+			input.blur();
+			return;
+		}
+		else {
+			var ch = (keyboardMode === 'letters' && keyboardShift) ? key.toUpperCase() : key;
+			insertAtKeyboardCaret(input, ch);
+
+			if (keyboardShift) {
+				keyboardShift = false;
+				renderKeyboard();
+			}
+		}
+
+		input.dispatchEvent(new Event('input', { bubbles: true }));
+		input.focus();
+	}
+
+	function insertAtKeyboardCaret(input, value) {
+		var start = input.selectionStart != null ? input.selectionStart : input.value.length;
+		var end = input.selectionEnd != null ? input.selectionEnd : input.value.length;
+
+		input.value = input.value.slice(0, start) + value + input.value.slice(end);
+		setKeyboardCaret(input, start + value.length);
+	}
+
+	function setKeyboardCaret(input, pos) {
+		try {
+			input.setSelectionRange(pos, pos);
+		}
+		catch (e) {
+			// Some input states (e.g. type=number) throw on setSelectionRange;
+			// harmless to skip here since this field is always type=text.
+		}
 	}
 
 	function loadSpotifyPlaylistTracks(playlistId) {
