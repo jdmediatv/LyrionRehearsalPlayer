@@ -821,6 +821,7 @@
 		--grid-title-size: 16px;
 		--grid-meta-size: 8px;
 		--grid-tile-gap: 4px;
+		--tile-art-size: 44px;
 		align-content: stretch;
 		display: grid;
 		gap: 6px;
@@ -834,20 +835,39 @@
 		--tile-title-size: var(--grid-title-size);
 		--tile-meta-size: var(--grid-meta-size);
 		--tile-row-gap: var(--grid-tile-gap);
-		align-content: stretch;
+		align-items: center;
 		background: linear-gradient(180deg, rgba(126, 67, 255, 0.15) 0%, rgba(32, 23, 48, 0.72) 100%);
 		border: 1px solid #7f4ce0;
 		border-radius: 10px;
 		color: #f7f2ff;
 		cursor: pointer;
-		display: grid;
-		gap: var(--tile-row-gap);
-		grid-template-rows: minmax(0, 1.8fr) minmax(0, 0.8fr) minmax(0, 0.8fr);
+		display: flex;
+		gap: 8px;
 		min-height: 0;
 		min-width: 0;
 		overflow: hidden;
 		padding: 7px 8px;
 		text-align: left;
+	}
+
+	.rehearsal-player__tileArt {
+		background: rgba(255, 255, 255, 0.08);
+		border-radius: 6px;
+		flex: 0 0 auto;
+		height: var(--tile-art-size);
+		object-fit: cover;
+		width: var(--tile-art-size);
+	}
+
+	.rehearsal-player__tileBody {
+		align-content: stretch;
+		display: grid;
+		flex: 1 1 auto;
+		gap: var(--tile-row-gap);
+		grid-template-rows: minmax(0, 1.8fr) minmax(0, 0.8fr) minmax(0, 0.8fr);
+		min-height: 0;
+		min-width: 0;
+		overflow: hidden;
 	}
 
 	.rehearsal-player__tile:hover {
@@ -860,11 +880,11 @@
 		border-color: #ecb0ff;
 	}
 
-	.rehearsal-player__tile.is-title-only {
+	.rehearsal-player__tile.is-title-only .rehearsal-player__tileBody {
 		grid-template-rows: minmax(0, 1fr);
 	}
 
-	.rehearsal-player__tile.is-single-meta {
+	.rehearsal-player__tile.is-single-meta .rehearsal-player__tileBody {
 		grid-template-rows: minmax(0, 1.45fr) minmax(0, 0.85fr);
 	}
 
@@ -901,15 +921,18 @@
 		--grid-title-size: 14px;
 		--grid-meta-size: 7px;
 		--grid-tile-gap: 3px;
+		--tile-art-size: 36px;
 	}
 
 	.rehearsal-player__tileGrid.is-ultra {
 		--grid-title-size: 12px;
 		--grid-meta-size: 6px;
 		--grid-tile-gap: 3px;
+		--tile-art-size: 28px;
 	}
 
 	.rehearsal-player__tileGrid.is-ultra .rehearsal-player__tile {
+		gap: 6px;
 		padding: 6px 7px;
 	}
 
@@ -917,9 +940,11 @@
 		--grid-title-size: 10px;
 		--grid-meta-size: 5px;
 		--grid-tile-gap: 2px;
+		--tile-art-size: 22px;
 	}
 
 	.rehearsal-player__tileGrid.is-micro .rehearsal-player__tile {
+		gap: 5px;
 		padding: 4px 5px;
 	}
 
@@ -2282,11 +2307,22 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
 				(currentStatus.currentUrl && currentStatus.currentUrl === trackUrl)
 			) ? ' is-active' : '';
 			var densityClass = metaLines.length === 0 ? ' is-title-only' : (metaLines.length === 1 ? ' is-single-meta' : '');
+			// Album art thumbnails only make sense for a Spotify-sourced track
+			// list - a local Lyrion server playlist has no artwork_url, so
+			// leave those tiles text-only rather than showing a blank slot.
+			var artUrl = (activeSource === 'spotify' && track.artwork_url) ? track.artwork_url : '';
+			var artHtml = artUrl
+				? '<img class="rehearsal-player__tileArt" src="' + escapeText(artUrl) + '" alt="" onerror="this.remove();">'
+				: '';
+			var artClass = artHtml ? ' has-art' : '';
 
 			html.push(
-				'<button class="rehearsal-player__tile' + active + densityClass + '" type="button" data-track-id="' + escapeText(track.id || '') + '" data-url="' + escapeText(trackUrl) + '" data-title="' + escapeText(track.title || text.unknownTrack) + '">' +
-					'<span class="rehearsal-player__tileTitle">' + escapeText(track.title || text.unknownTrack) + '</span>' +
-					metaLines.join('') +
+				'<button class="rehearsal-player__tile' + active + densityClass + artClass + '" type="button" data-track-id="' + escapeText(track.id || '') + '" data-url="' + escapeText(trackUrl) + '" data-title="' + escapeText(track.title || text.unknownTrack) + '">' +
+					artHtml +
+					'<span class="rehearsal-player__tileBody">' +
+						'<span class="rehearsal-player__tileTitle">' + escapeText(track.title || text.unknownTrack) + '</span>' +
+						metaLines.join('') +
+					'</span>' +
 				'</button>'
 			);
 		}
@@ -2309,6 +2345,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
 		function layoutTrackGrid(count) {
 			elements.tracks.style.removeProperty('gridTemplateColumns');
 			elements.tracks.style.removeProperty('gridAutoRows');
+			elements.tracks.style.removeProperty('justifyContent');
+			elements.tracks.style.removeProperty('alignContent');
 			elements.tracks.style.removeProperty('--grid-title-size');
 			elements.tracks.style.removeProperty('--grid-meta-size');
 			elements.tracks.style.removeProperty('--grid-tile-gap');
@@ -2374,19 +2412,30 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
 			};
 		}
 
-		elements.tracks.style.gridTemplateColumns = 'repeat(' + best.cols + ', minmax(0, 1fr))';
-		elements.tracks.style.gridAutoRows = best.tileHeight + 'px';
-		elements.tracks.style.setProperty('--grid-title-size', Math.max(12, Math.min(22, Math.floor(Math.min(best.tileHeight * 0.42, best.tileWidth * 0.22)))) + 'px');
-		elements.tracks.style.setProperty('--grid-meta-size', Math.max(5, Math.min(11, Math.floor(Math.min(best.tileHeight * 0.2, best.tileWidth * 0.11)))) + 'px');
-		elements.tracks.style.setProperty('--grid-tile-gap', (best.tileHeight <= 58 ? 2 : best.tileHeight <= 76 ? 3 : 4) + 'px');
+		// Cap how large a tile is allowed to grow. Without this, a playlist
+		// with only a few tracks would stretch each tile to fill the whole
+		// panel (e.g. 3 tracks => 3 huge tiles) - capping keeps tiles a
+		// sensible touch-target size regardless of how few tracks there are.
+		var MAX_TILE_WIDTH = 170;
+		var MAX_TILE_HEIGHT = 100;
+		var tileWidth = Math.min(best.tileWidth, MAX_TILE_WIDTH);
+		var tileHeight = Math.min(best.tileHeight, MAX_TILE_HEIGHT);
 
-		if (best.tileHeight <= 34 || best.tileWidth <= 68) {
+		elements.tracks.style.gridTemplateColumns = 'repeat(' + best.cols + ', ' + tileWidth + 'px)';
+		elements.tracks.style.gridAutoRows = tileHeight + 'px';
+		elements.tracks.style.justifyContent = 'center';
+		elements.tracks.style.alignContent = 'center';
+		elements.tracks.style.setProperty('--grid-title-size', Math.max(12, Math.min(22, Math.floor(Math.min(tileHeight * 0.42, tileWidth * 0.22)))) + 'px');
+		elements.tracks.style.setProperty('--grid-meta-size', Math.max(5, Math.min(11, Math.floor(Math.min(tileHeight * 0.2, tileWidth * 0.11)))) + 'px');
+		elements.tracks.style.setProperty('--grid-tile-gap', (tileHeight <= 58 ? 2 : tileHeight <= 76 ? 3 : 4) + 'px');
+
+		if (tileHeight <= 34 || tileWidth <= 68) {
 			elements.tracks.classList.add('is-micro');
 		}
-		else if (best.tileHeight <= 52 || best.tileWidth <= 84) {
+		else if (tileHeight <= 52 || tileWidth <= 84) {
 			elements.tracks.classList.add('is-ultra');
 		}
-			else if (best.tileHeight <= 72 || best.tileWidth <= 112) {
+			else if (tileHeight <= 72 || tileWidth <= 112) {
 				elements.tracks.classList.add('is-compact');
 			}
 		}

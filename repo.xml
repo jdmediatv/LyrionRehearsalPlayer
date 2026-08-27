@@ -8,15 +8,15 @@ https://raw.githubusercontent.com/jdmediatv/LyrionRehearsalPlayer/main/repo.xml
 		<title lang="EN">Jazzart Plugins</title>
 	</details>
 	<plugins>
-		<plugin name="RehearsalPlayer" version="1.1.9" minTarget="7.9" maxTarget="*">
+		<plugin name="RehearsalPlayer" version="1.1.10" minTarget="7.9" maxTarget="*">
 			<title lang="EN">Rehearsal Player</title>
 			<desc lang="EN">Dark, playlist-driven rehearsal playback with tutor/class filters, artwork playlist selection, large transport controls, quick jump presets, and a Spotify-backed teacher playlist section.</desc>
 			<category>tools</category>
-			<changes lang="EN">Added a built-in on-screen keyboard to the Spotify search popup, since the kiosk is a touchscreen with no attached physical keyboard. The search field now suppresses the device's own software keyboard (inputmode="none") so this one is the only keyboard that shows up - QWERTY layout with shift, backspace, a 123/ABC toggle for numbers and punctuation, and a Done key.</changes>
+			<changes lang="EN">Track tiles are smaller now (no more a handful of tracks stretching into a few giant buttons), and tiles for a Spotify playlist show a small album art thumbnail - local Lyrion playlists are unaffected since they have no artwork to show.</changes>
 			<creator>Jazzart</creator>
 			<link>https://github.com/jdmediatv/LyrionRehearsalPlayer</link>
-			<url>https://raw.githubusercontent.com/jdmediatv/LyrionRehearsalPlayer/main/release-assets/RehearsalPlayer-1.1.9.zip</url>
-			<sha>d086173ea55afb7d2a85913d26dcdec361179252</sha>
+			<url>https://raw.githubusercontent.com/jdmediatv/LyrionRehearsalPlayer/main/release-assets/RehearsalPlayer-1.1.10.zip</url>
+			<sha>b5a0656a6a93b1fee0491ce5fd9c8af6fc37f9b0</sha>
 		</plugin>
 	</plugins>
 </extensions>
