@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Connecting to Spotify&hellip;</title>
+<style>
+	html, body {
+		background: #0d0a15;
+		color: #f3eeff;
+		font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+		height: 100%;
+		margin: 0;
+	}
+
+	.wrap {
+		align-items: center;
+		display: flex;
+		height: 100%;
+		justify-content: center;
+		padding: 24px;
+		text-align: center;
+	}
+
+	.box {
+		max-width: 360px;
+	}
+
+	h1 {
+		font-size: 18px;
+		margin: 0 0 8px;
+	}
+
+	p {
+		color: #b7a6d7;
+		font-size: 13px;
+		line-height: 1.5;
+	}
+
+	a {
+		color: #d097ff;
+	}
+
+	.spinner {
+		animation: spin 1s linear infinite;
+		border: 3px solid #3a2a5c;
+		border-radius: 50%;
+		border-top-color: #d097ff;
+		height: 28px;
+		margin: 0 auto 14px;
+		width: 28px;
+	}
+
+	@keyframes spin {
+		to { transform: rotate(360deg); }
+	}
+</style>
+</head>
+<body>
+	<div class="wrap">
+		<div class="box">
+			<div class="spinner" id="spinner"></div>
+			<h1 id="heading">Connecting to Spotify&hellip;</h1>
+			<p id="message">Hang on while we send you back to Rehearsal Player.</p>
+			<p id="fallback" style="display:none;"></p>
+		</div>
+	</div>
+
+	<script>
+	// This page is a fixed, publicly-hosted HTTPS "bridge" for the Rehearsal
+	// Player Lyrion Music Server plugin's Spotify integration.
+	//
+	// Spotify's OAuth implementation requires the redirect_uri registered on
+	// a Spotify app to be HTTPS (the sole exception being the literal
+	// loopback address http://127.0.0.1). A Lyrion server on a school's own
+	// network almost never has a stable public HTTPS address, so instead of
+	// registering the LMS server itself with Spotify, this single static
+	// page is registered as the redirect_uri.
+	//
+	// The Lyrion plugin encodes *where the teacher's browser actually needs
+	// to end up* (its own LAN address) into the OAuth "state" parameter
+	// before sending the browser to Spotify. Spotify hands that same
+	// "state" straight back to this page along with the authorization
+	// "code" (or an "error"). All this page does is decode that address
+	// and immediately bounce the browser to it, carrying "code"/"state"/
+	// "error" along unchanged. It never talks to Spotify's API itself and
+	// stores nothing.
+	//
+	// Deployment: host this exact file, unmodified, at a stable HTTPS URL
+	// (GitHub Pages, Netlify, Cloudflare Pages, etc. all work fine on their
+	// free tiers). Register that URL as a Redirect URI on your Spotify
+	// app, and paste the same URL into the Rehearsal Player plugin's
+	// settings page as "Bridge Page URL". See SPOTIFY_SETUP.md.
+
+	function base64UrlDecode(value) {
+		var padded = value.replace(/-/g, '+').replace(/_/g, '/');
+		while (padded.length % 4) {
+			padded += '=';
+		}
+		return decodeURIComponent(
+			atob(padded)
+				.split('')
+				.map(function (c) {
+					return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+				})
+				.join('')
+		);
+	}
+
+	function setFallback(url) {
+		var el = document.getElementById('fallback');
+		el.innerHTML = 'If nothing happens, <a href="' + url + '">tap here to continue</a>.';
+		el.style.display = 'block';
+	}
+
+	function fail(msg) {
+		document.getElementById('spinner').style.display = 'none';
+		document.getElementById('heading').textContent = 'Could not continue';
+		document.getElementById('message').textContent = msg;
+	}
+
+	try {
+		var params = new URLSearchParams(window.location.search);
+		var state = params.get('state');
+
+		if (!state) {
+			fail('This link is missing its state parameter, so we do not know which Rehearsal Player server to send you back to. Please start the "Connect Spotify" step again.');
+		}
+		else {
+			var decoded = JSON.parse(base64UrlDecode(state));
+
+			if (!decoded || !decoded.cb) {
+				fail('This link does not identify a Rehearsal Player server to return to. Please start the "Connect Spotify" step again.');
+			}
+			else {
+				var target = decoded.cb
+					+ (decoded.cb.indexOf('?') === -1 ? '?' : '&')
+					+ 'action=spotify_callback&' + params.toString();
+
+				setFallback(target);
+				window.location.replace(target);
+			}
+		}
+	}
+	catch (e) {
+		fail('Something went wrong reading this link. Please start the "Connect Spotify" step again.');
+	}
+	</script>
+</body>
+</html>

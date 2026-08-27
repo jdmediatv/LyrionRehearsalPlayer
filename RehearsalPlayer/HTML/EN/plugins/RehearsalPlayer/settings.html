@@ -5,4 +5,191 @@
 		<div class="settingItem">[% playlistdir | html %]</div>
 	[% END %]
 
+	[% WRAPPER setting title="PLUGIN_REHEARSAL_PLAYER_SPOTIFY_SETUP_TITLE" desc="" %]
+		<div class="rp-settings-help">
+			[% "PLUGIN_REHEARSAL_PLAYER_SPOTIFY_SETUP_HELP" | string %]
+			<ol>
+				<li>[% "PLUGIN_REHEARSAL_PLAYER_SPOTIFY_SETUP_STEP1" | string %]</li>
+				<li>[% "PLUGIN_REHEARSAL_PLAYER_SPOTIFY_SETUP_STEP2" | string %]</li>
+				<li>[% "PLUGIN_REHEARSAL_PLAYER_SPOTIFY_SETUP_STEP3" | string %]</li>
+				<li>[% "PLUGIN_REHEARSAL_PLAYER_SPOTIFY_SETUP_STEP4" | string %]</li>
+			</ol>
+		</div>
+	[% END %]
+
+	[% WRAPPER setting title="PLUGIN_REHEARSAL_PLAYER_SPOTIFY_CLIENT_ID" desc="" %]
+		<input type="text" class="settingsInput" name="spotifyClientId" value="[% spotifyClientId | html %]" size="48" />
+	[% END %]
+
+	[% WRAPPER setting title="PLUGIN_REHEARSAL_PLAYER_SPOTIFY_CLIENT_SECRET" desc="" %]
+		<input type="text" class="settingsInput" name="spotifyClientSecret" value="[% spotifyClientSecret | html %]" size="48" autocomplete="off" />
+	[% END %]
+
+	[% WRAPPER setting title="PLUGIN_REHEARSAL_PLAYER_SPOTIFY_BRIDGE_URL" desc="PLUGIN_REHEARSAL_PLAYER_SPOTIFY_BRIDGE_URL_DESC" %]
+		<input type="text" class="settingsInput" id="rp-bridge-url" name="spotifyBridgeUrl" value="[% spotifyBridgeUrl | html %]" size="60" placeholder="https://your-username.github.io/spotify-oauth-bridge/" />
+	[% END %]
+
+	[% WRAPPER setting title="PLUGIN_REHEARSAL_PLAYER_TEACHER_PLAYLISTS_TITLE" desc="PLUGIN_REHEARSAL_PLAYER_TEACHER_PLAYLISTS_DESC" %]
+		<div id="rp-playlist-editor" class="rp-playlist-editor">
+			<table class="rp-playlist-table">
+				<thead>
+					<tr>
+						<th>[% "PLUGIN_REHEARSAL_PLAYER_TP_ENABLED" | string %]</th>
+						<th>[% "PLUGIN_REHEARSAL_PLAYER_TP_LABEL" | string %]</th>
+						<th>[% "PLUGIN_REHEARSAL_PLAYER_TP_ICON" | string %]</th>
+						<th>[% "PLUGIN_REHEARSAL_PLAYER_TP_PLAYLIST" | string %]</th>
+						<th></th>
+					</tr>
+				</thead>
+				<tbody id="rp-playlist-rows"></tbody>
+			</table>
+			<button type="button" id="rp-add-row" class="rp-add-row-btn">[% "PLUGIN_REHEARSAL_PLAYER_TP_ADD" | string %]</button>
+			<textarea id="teacherPlaylistsJson" name="teacherPlaylistsJson" style="display:none;"></textarea>
+		</div>
+	[% END %]
+
+<style type="text/css">
+	.rp-settings-help ol { margin: 6px 0 0 18px; padding: 0; }
+	.rp-settings-help li { margin-bottom: 4px; }
+
+	.rp-playlist-table { border-collapse: collapse; width: 100%; max-width: 720px; }
+	.rp-playlist-table th,
+	.rp-playlist-table td { border-bottom: 1px solid #ccc; padding: 4px 6px; text-align: left; vertical-align: middle; }
+	.rp-playlist-table input[type="text"] { width: 100%; box-sizing: border-box; }
+	.rp-playlist-table td.rp-col-enabled,
+	.rp-playlist-table th:first-child { width: 30px; text-align: center; }
+	.rp-playlist-table td.rp-col-remove { width: 30px; text-align: center; }
+	.rp-playlist-table td.rp-col-icon input { width: 60px; }
+	.rp-add-row-btn { margin-top: 8px; }
+	.rp-remove-btn { cursor: pointer; }
+</style>
+
+<script type="text/javascript">
+(function () {
+	var rowsBody = document.getElementById('rp-playlist-rows');
+	var jsonField = document.getElementById('teacherPlaylistsJson');
+	var addButton = document.getElementById('rp-add-row');
+	if (!rowsBody || !jsonField || !addButton) {
+		return;
+	}
+
+	var initial = [];
+	try {
+		initial = [% teacherPlaylistsJson | replace('</', '<\\/') %];
+	} catch (e) {
+		initial = [];
+	}
+
+	function addRow(entry) {
+		entry = entry || {};
+
+		var tr = document.createElement('tr');
+
+		var enabledTd = document.createElement('td');
+		enabledTd.className = 'rp-col-enabled';
+		var enabledInput = document.createElement('input');
+		enabledInput.type = 'checkbox';
+		enabledInput.className = 'rp-f-enabled';
+		enabledInput.checked = entry.enabled === undefined ? true : !!entry.enabled;
+		enabledTd.appendChild(enabledInput);
+
+		var labelTd = document.createElement('td');
+		var labelInput = document.createElement('input');
+		labelInput.type = 'text';
+		labelInput.className = 'rp-f-label';
+		labelInput.placeholder = 'e.g. Mrs Adams';
+		labelInput.value = entry.label || '';
+		labelTd.appendChild(labelInput);
+
+		var iconTd = document.createElement('td');
+		iconTd.className = 'rp-col-icon';
+		var iconInput = document.createElement('input');
+		iconInput.type = 'text';
+		iconInput.className = 'rp-f-icon';
+		iconInput.placeholder = '🎷 or image URL';
+		iconInput.value = entry.icon || '';
+		iconTd.appendChild(iconInput);
+
+		var playlistTd = document.createElement('td');
+		var playlistInput = document.createElement('input');
+		playlistInput.type = 'text';
+		playlistInput.className = 'rp-f-playlist';
+		playlistInput.placeholder = 'Spotify playlist URL or ID';
+		playlistInput.value = entry.playlistId || '';
+		playlistTd.appendChild(playlistInput);
+
+		var removeTd = document.createElement('td');
+		removeTd.className = 'rp-col-remove';
+		var removeBtn = document.createElement('span');
+		removeBtn.className = 'rp-remove-btn';
+		removeBtn.title = 'Remove';
+		removeBtn.textContent = '✖';
+		removeBtn.addEventListener('click', function () {
+			tr.parentNode.removeChild(tr);
+			syncJson();
+		});
+		removeTd.appendChild(removeBtn);
+
+		tr.dataset.id = entry.id || '';
+		tr.appendChild(enabledTd);
+		tr.appendChild(labelTd);
+		tr.appendChild(iconTd);
+		tr.appendChild(playlistTd);
+		tr.appendChild(removeTd);
+
+		[enabledInput, labelInput, iconInput, playlistInput].forEach(function (el) {
+			el.addEventListener('input', syncJson);
+			el.addEventListener('change', syncJson);
+		});
+
+		rowsBody.appendChild(tr);
+	}
+
+	function syncJson() {
+		var rows = rowsBody.querySelectorAll('tr');
+		var data = [];
+
+		for (var i = 0; i < rows.length; i++) {
+			var row = rows[i];
+			var label = row.querySelector('.rp-f-label').value.trim();
+			var playlistId = row.querySelector('.rp-f-playlist').value.trim();
+
+			if (!label && !playlistId) {
+				continue;
+			}
+
+			data.push({
+				id: row.dataset.id || '',
+				enabled: row.querySelector('.rp-f-enabled').checked,
+				label: label,
+				icon: row.querySelector('.rp-f-icon').value.trim(),
+				playlistId: playlistId
+			});
+		}
+
+		jsonField.value = JSON.stringify(data);
+	}
+
+	addButton.addEventListener('click', function () {
+		addRow({ enabled: true });
+		syncJson();
+	});
+
+	if (initial && initial.length) {
+		for (var i = 0; i < initial.length; i++) {
+			addRow(initial[i]);
+		}
+	} else {
+		addRow({ enabled: true });
+	}
+
+	syncJson();
+
+	var form = jsonField.closest ? jsonField.closest('form') : null;
+	if (form) {
+		form.addEventListener('submit', syncJson);
+	}
+})();
+</script>
+
 [% PROCESS settings/footer.html %]

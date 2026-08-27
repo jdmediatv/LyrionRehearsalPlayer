@@ -114,3 +114,117 @@ PLUGIN_REHEARSAL_PLAYER_NO_COMMENT_FILTERS
 
 PLUGIN_REHEARSAL_PLAYER_UNKNOWN_TRACK
 	EN	Unknown Track
+
+PLUGIN_REHEARSAL_PLAYER_TEACHER_PLAYLISTS
+	EN	Teacher Playlists
+
+PLUGIN_REHEARSAL_PLAYER_SPOTIFY_CONNECT
+	EN	Connect Spotify
+
+PLUGIN_REHEARSAL_PLAYER_SPOTIFY_DISCONNECT
+	EN	Disconnect
+
+PLUGIN_REHEARSAL_PLAYER_SPOTIFY_CONNECTED_AS
+	EN	Connected as
+
+PLUGIN_REHEARSAL_PLAYER_SPOTIFY_NOT_CONNECTED
+	EN	Not connected
+
+PLUGIN_REHEARSAL_PLAYER_SPOTIFY_NOT_CONFIGURED
+	EN	Spotify integration has not been set up yet. Ask an administrator to add Spotify credentials in the plugin settings.
+
+PLUGIN_REHEARSAL_PLAYER_SPOTIFY_SIGN_IN_TO_ADD
+	EN	Connect your own Spotify account to add tracks to this playlist.
+
+PLUGIN_REHEARSAL_PLAYER_SPOTIFY_SIGN_IN_REQUIRED
+	EN	Please connect your Spotify account first.
+
+PLUGIN_REHEARSAL_PLAYER_SPOTIFY_NO_TEACHER_PLAYLISTS
+	EN	No teacher playlists have been set up yet.
+
+PLUGIN_REHEARSAL_PLAYER_SPOTIFY_SEARCH_PLACEHOLDER
+	EN	Search Spotify for a track to add...
+
+PLUGIN_REHEARSAL_PLAYER_SPOTIFY_SEARCH_BUTTON
+	EN	Search
+
+PLUGIN_REHEARSAL_PLAYER_SPOTIFY_ADD
+	EN	Add
+
+PLUGIN_REHEARSAL_PLAYER_SPOTIFY_ADDED
+	EN	Added
+
+PLUGIN_REHEARSAL_PLAYER_SPOTIFY_ADD_FAILED
+	EN	Could not add that track.
+
+PLUGIN_REHEARSAL_PLAYER_SPOTIFY_NO_RESULTS
+	EN	No matching tracks found.
+
+PLUGIN_REHEARSAL_PLAYER_SPOTIFY_PLAYBACK_UNAVAILABLE
+	EN	Install and enable a Spotify playback plugin (such as Spotty) on this Lyrion server to play Spotify tracks here. You can still browse, search and add tracks without it.
+
+PLUGIN_REHEARSAL_PLAYER_SPOTIFY_LOADING
+	EN	Loading Spotify playlist...
+
+PLUGIN_REHEARSAL_PLAYER_SPOTIFY_CONNECTED
+	EN	Connected to Spotify
+
+PLUGIN_REHEARSAL_PLAYER_SPOTIFY_FAILED
+	EN	Spotify connection failed
+
+PLUGIN_REHEARSAL_PLAYER_SPOTIFY_DENIED
+	EN	Spotify sign-in was cancelled or denied.
+
+PLUGIN_REHEARSAL_PLAYER_SPOTIFY_BAD_STATE
+	EN	This Spotify sign-in link has expired. Please try connecting again.
+
+PLUGIN_REHEARSAL_PLAYER_SPOTIFY_SETUP_TITLE
+	EN	Spotify App Credentials
+
+PLUGIN_REHEARSAL_PLAYER_SPOTIFY_SETUP_HELP
+	EN	Rehearsal Player uses the official Spotify Web API so teachers can browse and add tracks to shared Spotify playlists from their own accounts. This needs a one-time setup:
+
+PLUGIN_REHEARSAL_PLAYER_SPOTIFY_SETUP_STEP1
+	EN	Create a free app at developer.spotify.com/dashboard (any Spotify account can do this).
+
+PLUGIN_REHEARSAL_PLAYER_SPOTIFY_SETUP_STEP2
+	EN	Host the included spotify-oauth-bridge.html page somewhere with HTTPS (e.g. GitHub Pages) - see SPOTIFY_SETUP.md in this plugin's repository for step-by-step instructions.
+
+PLUGIN_REHEARSAL_PLAYER_SPOTIFY_SETUP_STEP3
+	EN	In the Spotify app's settings, add that page's URL as a Redirect URI, then paste the same URL into "Bridge Page URL" below.
+
+PLUGIN_REHEARSAL_PLAYER_SPOTIFY_SETUP_STEP4
+	EN	Copy the app's Client ID and Client Secret into the fields below and save.
+
+PLUGIN_REHEARSAL_PLAYER_SPOTIFY_CLIENT_ID
+	EN	Client ID
+
+PLUGIN_REHEARSAL_PLAYER_SPOTIFY_CLIENT_SECRET
+	EN	Client Secret
+
+PLUGIN_REHEARSAL_PLAYER_SPOTIFY_BRIDGE_URL
+	EN	Bridge Page URL
+
+PLUGIN_REHEARSAL_PLAYER_SPOTIFY_BRIDGE_URL_DESC
+	EN	The HTTPS page that bounces a teacher's browser from Spotify back to this Lyrion server. Must exactly match a Redirect URI registered on the Spotify app. See SPOTIFY_SETUP.md.
+
+PLUGIN_REHEARSAL_PLAYER_TEACHER_PLAYLISTS_TITLE
+	EN	Teacher Playlists
+
+PLUGIN_REHEARSAL_PLAYER_TEACHER_PLAYLISTS_DESC
+	EN	These appear as a static list to the left of the playlist view. Paste each teacher's Spotify playlist link (or just its ID) and make sure that playlist's "Collaborative" setting is turned on in Spotify so other teachers can add to it.
+
+PLUGIN_REHEARSAL_PLAYER_TP_ENABLED
+	EN	Show
+
+PLUGIN_REHEARSAL_PLAYER_TP_LABEL
+	EN	Teacher / Label
+
+PLUGIN_REHEARSAL_PLAYER_TP_ICON
+	EN	Icon
+
+PLUGIN_REHEARSAL_PLAYER_TP_PLAYLIST
+	EN	Spotify Playlist
+
+PLUGIN_REHEARSAL_PLAYER_TP_ADD
+	EN	+ Add playlist

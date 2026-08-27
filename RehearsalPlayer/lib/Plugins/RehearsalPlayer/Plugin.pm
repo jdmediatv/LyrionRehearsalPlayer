@@ -16,17 +16,31 @@ use URI::QueryParam;
 use Slim::Schema;
 use Slim::Utils::Log;
 use Slim::Utils::Misc;
+use Slim::Utils::PluginManager;
 use Slim::Utils::Prefs;
 use Slim::Utils::Strings qw(string);
 use Slim::Web::HTTP;
 use Slim::Web::Pages;
 
+use Plugins::RehearsalPlayer::Spotify;
+
 use constant MENU_PATH => 'plugins/RehearsalPlayer/index.html';
 use constant SLUG_PATH => 'jazzartplayer';
 use constant TABLET_SLUG_PATH => 'jazzartplayertablet';
 use constant API_PATH  => 'plugins/RehearsalPlayer/api';
+use constant SESSION_COOKIE => 'rp_spotify_sid';
 
 my $serverprefs = preferences('server');
+my $pluginprefs = preferences('plugin.rehearsalplayer');
+
+$pluginprefs->init({
+	teacherPlaylists    => [],
+	spotifySessions      => {},
+	spotifyPendingStates => {},
+	spotifyClientId      => '',
+	spotifyClientSecret  => '',
+	spotifyBridgeUrl     => '',
+});
 
 my $log = Slim::Utils::Log->addLogCategory({
 	category     => 'plugin.rehearsalplayer',
@@ -81,18 +95,49 @@ sub _renderIndex {
 	return Slim::Web::HTTP::filltemplatefile(MENU_PATH, $params);
 }
 
+# ---------------------------------------------------------------------------
+# API dispatch
+# ---------------------------------------------------------------------------
+#
+# Most actions are handled synchronously (they only touch the local Slim
+# database / prefs). Everything under the "spotify_*" actions talks to the
+# Spotify Web API over HTTPS, which is asynchronous - those handlers take
+# ownership of $httpClient/$response and call Slim::Web::HTTP::addHTTPResponse
+# themselves once the outbound request(s) complete, instead of returning a
+# value for this function to send.
+
 sub handleApi {
 	my ($httpClient, $response, $func) = @_;
 	my $request = $response->request;
-	my $client  = _getClientFromRequest($request);
 	my $action  = $request->uri->query_param('action') || 'state';
 
+	if ($action eq 'spotify_login') {
+		return _handleSpotifyLogin($httpClient, $response, $request);
+	}
+	if ($action eq 'spotify_callback') {
+		return _handleSpotifyCallback($httpClient, $response, $request);
+	}
+	if ($action eq 'spotify_logout') {
+		return _handleSpotifyLogout($httpClient, $response, $request);
+	}
+	if ($action eq 'spotify_playlist_tracks') {
+		return _handleSpotifyPlaylistTracks($httpClient, $response, $request);
+	}
+	if ($action eq 'spotify_search') {
+		return _handleSpotifySearch($httpClient, $response, $request);
+	}
+	if ($action eq 'spotify_add_track') {
+		return _handleSpotifyAddTrack($httpClient, $response, $request);
+	}
+
+	my $client = _getClientFromRequest($request);
 	my $result;
 	my $status = 200;
 
 	eval {
 		if ($action eq 'state') {
 			$result = _buildState($client, scalar $request->uri->query_param('playlist'));
+			$result->{spotify} = _buildSpotifyStateBlock($request);
 		}
 		else {
 			$status = 400;
@@ -106,15 +151,380 @@ sub handleApi {
 		$result = { error => "$@" };
 	}
 
-	my $content = to_json($result);
+	_sendJson($httpClient, $response, $result, $status);
+}
+
+# ---------------------------------------------------------------------------
+# Spotify: OAuth handlers
+# ---------------------------------------------------------------------------
+
+sub _handleSpotifyLogin {
+	my ($httpClient, $response, $request) = @_;
+
+	if (!Plugins::RehearsalPlayer::Spotify::isConfigured()) {
+		return _sendJson($httpClient, $response, { error => string('PLUGIN_REHEARSAL_PLAYER_SPOTIFY_NOT_CONFIGURED') }, 400);
+	}
+
+	my $callbackBase = _apiBaseUrl($request);
+	my $url = Plugins::RehearsalPlayer::Spotify::authorizeUrl($callbackBase);
+
+	$response->code(302);
+	$response->header('Location' => $url);
+	$response->header('Content-Length' => 0);
+	$response->header('Cache-Control' => 'no-store');
+
+	my $empty = '';
+	Slim::Web::HTTP::addHTTPResponse($httpClient, $response, \$empty);
+}
+
+sub _handleSpotifyCallback {
+	my ($httpClient, $response, $request) = @_;
+
+	my $code  = $request->uri->query_param('code');
+	my $state = $request->uri->query_param('state');
+	my $error = $request->uri->query_param('error');
+
+	if ($error) {
+		return _sendHtml($httpClient, $response, _spotifyResultPage(0, string('PLUGIN_REHEARSAL_PLAYER_SPOTIFY_DENIED')));
+	}
+
+	my $decodedState = Plugins::RehearsalPlayer::Spotify::consumeState($state);
+	if (!$decodedState || !$code) {
+		return _sendHtml($httpClient, $response, _spotifyResultPage(0, string('PLUGIN_REHEARSAL_PLAYER_SPOTIFY_BAD_STATE')));
+	}
+
+	Plugins::RehearsalPlayer::Spotify::exchangeCode(
+		code  => $code,
+		cbOk  => sub {
+			my ($tokenData) = @_;
+
+			Plugins::RehearsalPlayer::Spotify::getMe($tokenData->{access_token}, sub {
+				my ($profile) = @_;
+
+				my $sessionId = _newSessionId();
+				my $sessions  = $pluginprefs->get('spotifySessions') || {};
+
+				$sessions->{$sessionId} = {
+					access_token    => $tokenData->{access_token},
+					refresh_token   => $tokenData->{refresh_token},
+					expires_at      => time() + ($tokenData->{expires_in} || 3600),
+					display_name    => $profile->{display_name} || $profile->{id} || 'Spotify user',
+					spotify_user_id => $profile->{id},
+				};
+
+				$pluginprefs->set('spotifySessions', $sessions);
+				_setSessionCookie($response, $sessionId);
+
+				_sendHtml($httpClient, $response, _spotifyResultPage(1, $sessions->{$sessionId}{display_name}));
+			}, sub {
+				my ($errMsg) = @_;
+				_sendHtml($httpClient, $response, _spotifyResultPage(0, $errMsg));
+			});
+		},
+		cbErr => sub {
+			my ($errMsg) = @_;
+			_sendHtml($httpClient, $response, _spotifyResultPage(0, $errMsg));
+		},
+	);
+}
+
+sub _handleSpotifyLogout {
+	my ($httpClient, $response, $request) = @_;
+
+	my $sessionId = _getSessionIdFromRequest($request);
+
+	if ($sessionId) {
+		my $sessions = $pluginprefs->get('spotifySessions') || {};
+		delete $sessions->{$sessionId};
+		$pluginprefs->set('spotifySessions', $sessions);
+	}
+
+	$response->header('Set-Cookie' => SESSION_COOKIE . '=; Path=/; Max-Age=0');
+	_sendJson($httpClient, $response, { ok => 1 });
+}
+
+# ---------------------------------------------------------------------------
+# Spotify: data handlers
+# ---------------------------------------------------------------------------
+
+sub _handleSpotifyPlaylistTracks {
+	my ($httpClient, $response, $request) = @_;
+
+	my $playlistId = $request->uri->query_param('playlistId');
+
+	if (!$playlistId) {
+		return _sendJson($httpClient, $response, { error => string('PLUGIN_REHEARSAL_PLAYER_INVALID_REQUEST') }, 400);
+	}
+
+	_withBestToken($request, sub {
+		my ($token) = @_;
+
+		Plugins::RehearsalPlayer::Spotify::getPlaylistTracks(
+			playlistId  => $playlistId,
+			accessToken => $token,
+			cbOk        => sub {
+				my ($data) = @_;
+				_sendJson($httpClient, $response, {
+					tracks   => $data->{tracks},
+					playable => _spotifyPlaybackAvailable(),
+				});
+			},
+			cbErr       => sub {
+				my ($errMsg) = @_;
+				_sendJson($httpClient, $response, { error => $errMsg }, 502);
+			},
+		);
+	});
+}
+
+sub _handleSpotifySearch {
+	my ($httpClient, $response, $request) = @_;
+
+	my $query = $request->uri->query_param('q');
+
+	_withBestToken($request, sub {
+		my ($token) = @_;
+
+		Plugins::RehearsalPlayer::Spotify::searchTracks(
+			query       => $query,
+			accessToken => $token,
+			cbOk        => sub {
+				my ($data) = @_;
+				_sendJson($httpClient, $response, { tracks => $data->{tracks} });
+			},
+			cbErr       => sub {
+				my ($errMsg) = @_;
+				_sendJson($httpClient, $response, { error => $errMsg }, 502);
+			},
+		);
+	});
+}
+
+sub _handleSpotifyAddTrack {
+	my ($httpClient, $response, $request) = @_;
+
+	my $sessionId = _getSessionIdFromRequest($request);
+	my $sessions  = $pluginprefs->get('spotifySessions') || {};
+	my $session   = $sessionId ? $sessions->{$sessionId} : undef;
+
+	if (!$session) {
+		return _sendJson($httpClient, $response, { error => string('PLUGIN_REHEARSAL_PLAYER_SPOTIFY_SIGN_IN_REQUIRED') }, 401);
+	}
+
+	my $body = eval { from_json($request->content || '{}') } || {};
+	my $playlistId = $body->{playlistId};
+	my $trackUri   = $body->{trackUri};
+
+	if (!$playlistId || !$trackUri) {
+		return _sendJson($httpClient, $response, { error => string('PLUGIN_REHEARSAL_PLAYER_INVALID_REQUEST') }, 400);
+	}
+
+	Plugins::RehearsalPlayer::Spotify::ensureUserToken($session, sub {
+		my ($token, $updatedSession) = @_;
+
+		$sessions->{$sessionId} = $updatedSession;
+		$pluginprefs->set('spotifySessions', $sessions);
+
+		Plugins::RehearsalPlayer::Spotify::addTrackToPlaylist(
+			playlistId  => $playlistId,
+			trackUri    => $trackUri,
+			accessToken => $token,
+			cbOk        => sub {
+				_sendJson($httpClient, $response, { ok => 1 });
+			},
+			cbErr       => sub {
+				my ($errMsg) = @_;
+				_sendJson($httpClient, $response, { error => $errMsg }, 502);
+			},
+		);
+	}, sub {
+		my ($errMsg) = @_;
+		_sendJson($httpClient, $response, { error => $errMsg }, 401);
+	});
+}
+
+# Resolves the best access token to use for a *read* call: the signed-in
+# teacher's own token if this browser has one (refreshing it first if it's
+# stale), otherwise the plugin's app-level (Client Credentials) token, which
+# can read public playlists and the search catalog but cannot see private /
+# collaborative playlists it hasn't been shared with.
+sub _withBestToken {
+	my ($request, $cb) = @_;
+
+	my $sessionId = _getSessionIdFromRequest($request);
+	my $sessions  = $pluginprefs->get('spotifySessions') || {};
+	my $session   = $sessionId ? $sessions->{$sessionId} : undef;
+
+	if ($session && $session->{refresh_token}) {
+		Plugins::RehearsalPlayer::Spotify::ensureUserToken($session, sub {
+			my ($token, $updatedSession) = @_;
+			$sessions->{$sessionId} = $updatedSession;
+			$pluginprefs->set('spotifySessions', $sessions);
+			$cb->($token);
+		}, sub {
+			Plugins::RehearsalPlayer::Spotify::appToken($cb, sub { $cb->(undef) });
+		});
+		return;
+	}
+
+	Plugins::RehearsalPlayer::Spotify::appToken($cb, sub { $cb->(undef) });
+}
+
+sub _buildSpotifyStateBlock {
+	my ($request) = @_;
+
+	my $sessionId = _getSessionIdFromRequest($request);
+	my $session   = $sessionId ? ($pluginprefs->get('spotifySessions') || {})->{$sessionId} : undef;
+
+	return {
+		configured   => Plugins::RehearsalPlayer::Spotify::isConfigured(),
+		playable     => _spotifyPlaybackAvailable(),
+		playlists    => _visibleTeacherPlaylists(),
+		connected    => $session ? 1 : 0,
+		display_name => $session ? ($session->{display_name} || '') : '',
+	};
+}
+
+sub _visibleTeacherPlaylists {
+	my $playlists = $pluginprefs->get('teacherPlaylists') || [];
+	my @visible = grep { !defined $_->{enabled} || $_->{enabled} } @$playlists;
+
+	@visible = sort {
+		($a->{sortOrder} || 0) <=> ($b->{sortOrder} || 0) || lc($a->{label} || '') cmp lc($b->{label} || '')
+	} @visible;
+
+	return [ map {
+		{
+			id         => $_->{id},
+			label      => $_->{label},
+			icon       => $_->{icon},
+			playlistId => $_->{playlistId},
+		}
+	} @visible ];
+}
+
+# True when a Spotify-capable audio source plugin (e.g. the community
+# "Spotty" plugin) is installed and enabled, so a Squeezebox player can
+# actually stream a spotify:track:... URI the same way it streams a local
+# file:// URL. Without one, browsing/search/add-to-playlist still work
+# (those only need the Spotify Web API), but in-app playback cannot.
+sub _spotifyPlaybackAvailable {
+	my $enabled = eval {
+		Slim::Utils::PluginManager->isEnabled('Plugins::Spotty::Plugin');
+	};
+	return $enabled ? 1 : 0;
+}
+
+# ---------------------------------------------------------------------------
+# Small HTTP helpers shared by the sync + async handlers
+# ---------------------------------------------------------------------------
+
+sub _sendJson {
+	my ($httpClient, $response, $data, $status) = @_;
+
+	my $content = to_json($data);
 
 	$response->header('Content-Length' => length($content));
 	$response->header('Connection'     => 'close');
+	$response->header('Cache-Control'  => 'no-store');
 	$response->content_type('application/json');
-	$response->code($status);
+	$response->code($status || 200);
 
 	Slim::Web::HTTP::addHTTPResponse($httpClient, $response, \$content);
 }
+
+sub _sendHtml {
+	my ($httpClient, $response, $html) = @_;
+
+	$response->header('Content-Length' => length($html));
+	$response->header('Connection'     => 'close');
+	$response->content_type('text/html; charset=utf-8');
+	$response->code(200);
+
+	Slim::Web::HTTP::addHTTPResponse($httpClient, $response, \$html);
+}
+
+sub _spotifyResultPage {
+	my ($ok, $message) = @_;
+
+	my $safeMessage = defined $message ? $message : '';
+	$safeMessage =~ s/&/&amp;/g;
+	$safeMessage =~ s/</&lt;/g;
+	$safeMessage =~ s/>/&gt;/g;
+
+	my $heading = $ok
+		? string('PLUGIN_REHEARSAL_PLAYER_SPOTIFY_CONNECTED')
+		: string('PLUGIN_REHEARSAL_PLAYER_SPOTIFY_FAILED');
+	my $okFlag = $ok ? 1 : 0;
+
+	return <<"HTML";
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>$heading</title>
+<style>
+	body { background:#0d0a15; color:#f3eeff; font-family:-apple-system,'Segoe UI',sans-serif; display:flex; align-items:center; justify-content:center; height:100vh; margin:0; }
+	.box { text-align:center; padding:24px; max-width:320px; }
+	h1 { font-size:18px; margin-bottom:8px; }
+	p { color:#b7a6d7; font-size:13px; }
+</style>
+</head>
+<body>
+	<div class="box">
+		<h1>$heading</h1>
+		<p>$safeMessage</p>
+		<p>You can close this window.</p>
+	</div>
+	<script>
+		try { if (window.opener) { window.opener.postMessage({ rehearsalPlayerSpotify: true, ok: $okFlag }, '*'); } } catch (e) {}
+		setTimeout(function () { window.close(); }, 1500);
+	</script>
+</body>
+</html>
+HTML
+}
+
+sub _getSessionIdFromRequest {
+	my ($request) = @_;
+
+	my $cookieHeader = $request->header('Cookie') or return undef;
+	my $cookies = { CGI::Cookie->parse($cookieHeader) };
+	my $cookie = $cookies->{ SESSION_COOKIE() };
+
+	return $cookie ? $cookie->value : undef;
+}
+
+sub _newSessionId {
+	my @chars = ('a' .. 'z', 'A' .. 'Z', 0 .. 9);
+	my $id = '';
+	$id .= $chars[int(rand(scalar @chars))] for 1 .. 40;
+	return $id;
+}
+
+sub _setSessionCookie {
+	my ($response, $sessionId) = @_;
+
+	# ~180 days. HttpOnly is deliberately not set on some LMS builds' cookie
+	# jars this would break same-site fetch(); Path=/ keeps it scoped to
+	# this server only.
+	$response->header('Set-Cookie' => SESSION_COOKIE() . "=$sessionId; Path=/; Max-Age=15552000");
+}
+
+sub _apiBaseUrl {
+	my ($request) = @_;
+
+	my $host = $request->header('Host') || 'localhost';
+	my $webroot = $serverprefs->get('webroot') || '/';
+	$webroot = '/' . $webroot unless $webroot =~ m{^/};
+	$webroot .= '/' unless $webroot =~ m{/$};
+
+	return 'http://' . $host . $webroot . API_PATH;
+}
+
+# ---------------------------------------------------------------------------
+# Existing local-library playlist logic (unchanged)
+# ---------------------------------------------------------------------------
 
 sub _buildState {
 	my ($client, $selectedPlaylistId) = @_;

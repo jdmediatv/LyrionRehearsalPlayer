@@ -26,7 +26,8 @@
 	.rehearsal-player {
 		display: grid;
 		gap: 8px;
-		grid-template-rows: auto auto auto minmax(0, 1fr);
+		grid-template-columns: 92px minmax(0, 1fr);
+		grid-template-rows: minmax(0, 1fr);
 		height: var(--rehearsal-player-height, calc(100vh - 18px));
 		left: 12px;
 		min-height: 460px;
@@ -35,6 +36,194 @@
 		right: 12px;
 		top: 6px;
 		z-index: 5;
+	}
+
+	.rehearsal-player__main {
+		display: grid;
+		gap: 8px;
+		grid-column: 2;
+		grid-row: 1;
+		grid-template-rows: auto auto auto minmax(0, 1fr);
+		min-height: 0;
+		min-width: 0;
+	}
+
+	.rehearsal-player__sidebar {
+		display: grid;
+		gap: 8px;
+		grid-auto-rows: min-content;
+		grid-column: 1;
+		grid-row: 1;
+		min-height: 0;
+		overflow-y: auto;
+	}
+
+	.rehearsal-player__sidebarList {
+		display: grid;
+		gap: 6px;
+	}
+
+	.rehearsal-player__sidebarButton {
+		background: #120e1d;
+		border: 1px solid #7f4ce0;
+		border-radius: 10px;
+		color: #f9f6ff;
+		cursor: pointer;
+		display: grid;
+		gap: 4px;
+		justify-items: center;
+		padding: 6px 4px;
+		text-align: center;
+	}
+
+	.rehearsal-player__sidebarButton.is-active {
+		background: linear-gradient(180deg, #2b1747 0%, #1c122d 100%);
+		border-color: #c285ff;
+		box-shadow: 0 0 0 1px rgba(194, 133, 255, 0.28);
+	}
+
+	.rehearsal-player__sidebarIcon {
+		align-items: center;
+		background: #0b0812;
+		border-radius: 8px;
+		display: flex;
+		font-size: 20px;
+		height: 40px;
+		justify-content: center;
+		line-height: 1;
+		overflow: hidden;
+		width: 40px;
+	}
+
+	.rehearsal-player__sidebarIcon img {
+		display: block;
+		height: 100%;
+		object-fit: cover;
+		width: 100%;
+	}
+
+	.rehearsal-player__sidebarLabel {
+		font-size: 9px;
+		font-weight: bold;
+		line-height: 1.15;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		width: 100%;
+	}
+
+	.rehearsal-player__sidebarEmpty {
+		color: #8f7cb8;
+		font-size: 9px;
+		line-height: 1.3;
+		padding: 2px;
+		text-align: center;
+	}
+
+	.rehearsal-player__spotifyAuth {
+		display: grid;
+		gap: 4px;
+		justify-items: center;
+	}
+
+	.rehearsal-player__spotifyAuth .rehearsal-player__button {
+		font-size: 9px;
+		padding: 6px 4px;
+		text-align: center;
+		width: 100%;
+	}
+
+	.rehearsal-player__spotifyName {
+		color: #b7a6d7;
+		font-size: 8px;
+		line-height: 1.2;
+		overflow: hidden;
+		text-align: center;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		width: 100%;
+	}
+
+	.rehearsal-player__spotifyPanel {
+		display: none;
+		gap: 8px;
+	}
+
+	.rehearsal-player__spotifyPanel.is-visible {
+		display: grid;
+	}
+
+	.rehearsal-player__spotifySearchRow {
+		display: flex;
+		gap: 6px;
+	}
+
+	.rehearsal-player__spotifySearchRow input[type="text"] {
+		background: #0b0812;
+		border: 1px solid #6e3fd1;
+		border-radius: 9px;
+		box-sizing: border-box;
+		color: #f3eeff;
+		flex: 1 1 auto;
+		font-size: 11px;
+		height: 30px;
+		min-width: 0;
+		padding: 4px 8px;
+	}
+
+	.rehearsal-player__spotifyResults {
+		display: grid;
+		gap: 4px;
+		max-height: 140px;
+		overflow-y: auto;
+	}
+
+	.rehearsal-player__spotifyResult {
+		align-items: center;
+		background: #120e1d;
+		border: 1px solid #4a2f7a;
+		border-radius: 8px;
+		display: grid;
+		gap: 6px;
+		grid-template-columns: minmax(0, 1fr) auto;
+		padding: 4px 6px;
+	}
+
+	.rehearsal-player__spotifyResultInfo {
+		min-width: 0;
+	}
+
+	.rehearsal-player__spotifyResultTitle {
+		font-size: 10px;
+		font-weight: bold;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.rehearsal-player__spotifyResultMeta {
+		color: #b7a6d7;
+		font-size: 9px;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.rehearsal-player__spotifyAddButton {
+		background: #7f4ce0;
+		border: none;
+		border-radius: 999px;
+		color: #12081e;
+		cursor: pointer;
+		font-size: 9px;
+		font-weight: bold;
+		padding: 5px 9px;
+		white-space: nowrap;
+	}
+
+	.rehearsal-player__spotifyAddButton:disabled {
+		cursor: default;
+		opacity: 0.55;
 	}
 
 	.rehearsal-player__panel {
@@ -513,9 +702,26 @@
 
 	.rehearsal-player.is-tablet {
 		gap: 10px;
+		grid-template-columns: 120px minmax(0, 1fr);
 		left: 8px;
 		right: 8px;
 		top: 8px;
+	}
+
+	.rehearsal-player.is-tablet .rehearsal-player__sidebarIcon {
+		font-size: 26px;
+		height: 52px;
+		width: 52px;
+	}
+
+	.rehearsal-player.is-tablet .rehearsal-player__sidebarLabel {
+		font-size: 12px;
+		white-space: normal;
+	}
+
+	.rehearsal-player.is-tablet .rehearsal-player__spotifyAuth .rehearsal-player__button,
+	.rehearsal-player.is-tablet .rehearsal-player__spotifyName {
+		font-size: 11px;
 	}
 
 	.rehearsal-player.is-tablet .rehearsal-player__panel {
@@ -652,12 +858,32 @@
 
 	@media (max-width: 1080px) {
 		.rehearsal-player:not(.is-tablet) {
+			grid-template-columns: minmax(0, 1fr);
+			grid-template-rows: auto minmax(0, 1fr);
 			height: auto;
 			left: auto;
 			min-height: 0;
 			position: static;
 			right: auto;
 			top: auto;
+		}
+
+		.rehearsal-player:not(.is-tablet) .rehearsal-player__sidebar {
+			grid-column: 1;
+			grid-row: 1;
+			overflow: visible;
+		}
+
+		.rehearsal-player:not(.is-tablet) .rehearsal-player__sidebarList {
+			grid-auto-flow: column;
+			grid-auto-columns: 78px;
+			overflow-x: auto;
+			padding-bottom: 2px;
+		}
+
+		.rehearsal-player:not(.is-tablet) .rehearsal-player__main {
+			grid-column: 1;
+			grid-row: 2;
 		}
 
 		.rehearsal-player:not(.is-tablet) .rehearsal-player__controls {
@@ -689,6 +915,27 @@
 	data-jsonrpc-url="[% webroot %]jsonrpc.js"
 	data-layout="[% rehearsalPlayerLayout | html %]"
 	data-initial-player="[% player | html %]">
+
+	<div class="rehearsal-player__sidebar">
+		<div class="rehearsal-player__panel rehearsal-player__panel--tight">
+			<div class="rehearsal-player__title">[% "PLUGIN_REHEARSAL_PLAYER_TEACHER_PLAYLISTS" | string %]</div>
+			<div id="rp-teacher-playlists" class="rehearsal-player__sidebarList"></div>
+		</div>
+
+		<div class="rehearsal-player__panel rehearsal-player__panel--tight">
+			<div id="rp-spotify-auth" class="rehearsal-player__spotifyAuth"></div>
+		</div>
+
+		<div id="rp-spotify-panel" class="rehearsal-player__panel rehearsal-player__panel--tight rehearsal-player__spotifyPanel">
+			<div class="rehearsal-player__title">[% "PLUGIN_REHEARSAL_PLAYER_SPOTIFY_ADD" | string %]</div>
+			<div class="rehearsal-player__spotifySearchRow">
+				<input type="text" id="rp-spotify-search-input" placeholder="[% "PLUGIN_REHEARSAL_PLAYER_SPOTIFY_SEARCH_PLACEHOLDER" | string | html %]" />
+			</div>
+			<div id="rp-spotify-results" class="rehearsal-player__spotifyResults"></div>
+		</div>
+	</div>
+
+	<div class="rehearsal-player__main">
 
 	<div class="rehearsal-player__panel rehearsal-player__panel--tight">
 		<div class="rehearsal-player__title">[% "PLUGIN_REHEARSAL_PLAYER_PLAYLISTS" | string %]</div>
@@ -773,6 +1020,8 @@
 	<div class="rehearsal-player__panel rehearsal-player__tracksPanel" id="rp-tracks-panel">
 		<div id="rp-tracks" class="rehearsal-player__tileGrid"></div>
 	</div>
+
+	</div>
 </div>
 
 <script type="text/javascript">
@@ -801,7 +1050,19 @@
 		noCommentFilters: "[% "PLUGIN_REHEARSAL_PLAYER_NO_COMMENT_FILTERS" | string | html | replace('"', '\"') %]",
 		tracks: "[% "PLUGIN_REHEARSAL_PLAYER_TRACKS" | string | html | replace('"', '\"') %]",
 		playlistTracks: "[% "PLUGIN_REHEARSAL_PLAYER_PLAYLIST_TRACKS" | string | html | replace('"', '\"') %]",
-		unknownTrack: "[% "PLUGIN_REHEARSAL_PLAYER_UNKNOWN_TRACK" | string | html | replace('"', '\"') %]"
+		unknownTrack: "[% "PLUGIN_REHEARSAL_PLAYER_UNKNOWN_TRACK" | string | html | replace('"', '\"') %]",
+		noTeacherPlaylists: "[% "PLUGIN_REHEARSAL_PLAYER_SPOTIFY_NO_TEACHER_PLAYLISTS" | string | html | replace('"', '\"') %]",
+		spotifyConnect: "[% "PLUGIN_REHEARSAL_PLAYER_SPOTIFY_CONNECT" | string | html | replace('"', '\"') %]",
+		spotifyDisconnect: "[% "PLUGIN_REHEARSAL_PLAYER_SPOTIFY_DISCONNECT" | string | html | replace('"', '\"') %]",
+		spotifyConnectedAs: "[% "PLUGIN_REHEARSAL_PLAYER_SPOTIFY_CONNECTED_AS" | string | html | replace('"', '\"') %]",
+		spotifyNotConnected: "[% "PLUGIN_REHEARSAL_PLAYER_SPOTIFY_NOT_CONNECTED" | string | html | replace('"', '\"') %]",
+		spotifyNotConfigured: "[% "PLUGIN_REHEARSAL_PLAYER_SPOTIFY_NOT_CONFIGURED" | string | html | replace('"', '\"') %]",
+		spotifyAdd: "[% "PLUGIN_REHEARSAL_PLAYER_SPOTIFY_ADD" | string | html | replace('"', '\"') %]",
+		spotifyAdded: "[% "PLUGIN_REHEARSAL_PLAYER_SPOTIFY_ADDED" | string | html | replace('"', '\"') %]",
+		spotifyAddFailed: "[% "PLUGIN_REHEARSAL_PLAYER_SPOTIFY_ADD_FAILED" | string | html | replace('"', '\"') %]",
+		spotifyNoResults: "[% "PLUGIN_REHEARSAL_PLAYER_SPOTIFY_NO_RESULTS" | string | html | replace('"', '\"') %]",
+		spotifyPlaybackUnavailable: "[% "PLUGIN_REHEARSAL_PLAYER_SPOTIFY_PLAYBACK_UNAVAILABLE" | string | html | replace('"', '\"') %]",
+		spotifyLoading: "[% "PLUGIN_REHEARSAL_PLAYER_SPOTIFY_LOADING" | string | html | replace('"', '\"') %]"
 	};
 
 		var elements = {
@@ -818,7 +1079,12 @@
 			play: document.getElementById('rp-play'),
 			pause: document.getElementById('rp-pause'),
 			volume: document.getElementById('rp-volume'),
-			volumeValue: document.getElementById('rp-volume-value')
+			volumeValue: document.getElementById('rp-volume-value'),
+			teacherPlaylists: document.getElementById('rp-teacher-playlists'),
+			spotifyAuth: document.getElementById('rp-spotify-auth'),
+			spotifyPanel: document.getElementById('rp-spotify-panel'),
+			spotifySearchInput: document.getElementById('rp-spotify-search-input'),
+			spotifyResults: document.getElementById('rp-spotify-results')
 		};
 		var jumpButtons = app.querySelectorAll('[data-jump]');
 		var fractionButtons = app.querySelectorAll('[data-fraction]');
@@ -835,6 +1101,12 @@
 		var volumeTimer = null;
 		var currentStatus = { mode: 'stop', time: 0, duration: 0, currentId: '', currentUrl: '', volume: 50 };
 		var state = { playlists: [], tracks: [], filters: { composers: [], comments: [] }, players: [] };
+		var spotify = { configured: false, playable: false, connected: false, display_name: '', playlists: [] };
+		var activeSource = 'local';
+		var selectedTeacherPlaylistId = '';
+		var spotifyTracks = [];
+		var spotifyFilters = { composers: [], comments: [] };
+		var spotifySearchTimer = null;
 
 	function escapeText(value) {
 		return String(value || '')
@@ -919,11 +1191,49 @@
 		return null;
 	}
 
+	function activeTrackList() {
+		return activeSource === 'spotify' ? spotifyTracks : state.tracks;
+	}
+
+	function activeFilters() {
+		return activeSource === 'spotify' ? spotifyFilters : (state.filters || { composers: [], comments: [] });
+	}
+
+	function findTeacherPlaylist(id) {
+		for (var i = 0; i < spotify.playlists.length; i++) {
+			if (spotify.playlists[i].id === id) {
+				return spotify.playlists[i];
+			}
+		}
+
+		return null;
+	}
+
+	function buildFiltersFromTracks(tracks) {
+		var composers = {};
+		var comments = {};
+
+		for (var i = 0; i < tracks.length; i++) {
+			if (tracks[i].composer) {
+				composers[tracks[i].composer] = true;
+			}
+			if (tracks[i].comment) {
+				comments[tracks[i].comment] = true;
+			}
+		}
+
+		return {
+			composers: Object.keys(composers).sort(function (a, b) { return a.localeCompare(b); }),
+			comments: Object.keys(comments).sort(function (a, b) { return a.localeCompare(b); })
+		};
+	}
+
 	function filteredTracks() {
 		var list = [];
+		var tracks = activeTrackList();
 
-		for (var i = 0; i < state.tracks.length; i++) {
-			var track = state.tracks[i];
+		for (var i = 0; i < tracks.length; i++) {
+			var track = tracks[i];
 			if (selectedComposer && track.composer !== selectedComposer) {
 				continue;
 			}
@@ -1056,15 +1366,251 @@
 		for (var j = 0; j < buttons.length; j++) {
 			buttons[j].addEventListener('click', function (event) {
 				var nextPlaylist = event.currentTarget.getAttribute('data-playlist');
+				var switchingSource = activeSource !== 'local';
+
+				activeSource = 'local';
+				selectedTeacherPlaylistId = '';
+				renderSidebarPlaylists();
+				renderSpotifyAuth();
+
 				if (nextPlaylist === selectedPlaylistId) {
+					if (switchingSource) {
+						renderFilters();
+						renderTracks();
+					}
 					return;
 				}
+
 				selectedPlaylistId = nextPlaylist;
 				selectedComposer = '';
 				selectedComment = '';
 				loadState();
 			});
 		}
+	}
+
+	// -----------------------------------------------------------------
+	// Spotify: teacher playlist sidebar, connect/disconnect, search+add
+	// -----------------------------------------------------------------
+
+	function renderSidebarPlaylists() {
+		if (!spotify.playlists || !spotify.playlists.length) {
+			elements.teacherPlaylists.innerHTML = '<div class="rehearsal-player__sidebarEmpty">' + escapeText(text.noTeacherPlaylists) + '</div>';
+			return;
+		}
+
+		var html = [];
+		for (var i = 0; i < spotify.playlists.length; i++) {
+			var teacherPlaylist = spotify.playlists[i];
+			var active = (activeSource === 'spotify' && teacherPlaylist.id === selectedTeacherPlaylistId) ? ' is-active' : '';
+			var iconHtml;
+
+			if (teacherPlaylist.icon && /^https?:\/\//i.test(teacherPlaylist.icon)) {
+				iconHtml = '<img src="' + escapeText(teacherPlaylist.icon) + '" alt="">';
+			}
+			else {
+				iconHtml = escapeText(teacherPlaylist.icon || '🎵');
+			}
+
+			html.push(
+				'<button class="rehearsal-player__sidebarButton' + active + '" type="button" data-teacher-playlist="' + escapeText(teacherPlaylist.id) + '" title="' + escapeText(teacherPlaylist.label) + '">' +
+					'<span class="rehearsal-player__sidebarIcon">' + iconHtml + '</span>' +
+					'<span class="rehearsal-player__sidebarLabel">' + escapeText(teacherPlaylist.label) + '</span>' +
+				'</button>'
+			);
+		}
+
+		elements.teacherPlaylists.innerHTML = html.join('');
+
+		var buttons = elements.teacherPlaylists.querySelectorAll('[data-teacher-playlist]');
+		for (var j = 0; j < buttons.length; j++) {
+			buttons[j].addEventListener('click', function (event) {
+				selectTeacherPlaylist(event.currentTarget.getAttribute('data-teacher-playlist'));
+			});
+		}
+	}
+
+	function selectTeacherPlaylist(id) {
+		if (activeSource === 'spotify' && selectedTeacherPlaylistId === id) {
+			return;
+		}
+
+		selectedTeacherPlaylistId = id;
+		activeSource = 'spotify';
+		selectedComposer = '';
+		selectedComment = '';
+
+		renderSidebarPlaylists();
+		renderSpotifyAuth();
+		loadSpotifyPlaylistTracks(id);
+	}
+
+	function loadSpotifyPlaylistTracks(playlistId) {
+		showMessage(text.spotifyLoading, 'info');
+
+		return fetch(apiUrl + '?action=spotify_playlist_tracks&playlistId=' + encodeURIComponent(playlistId), { credentials: 'same-origin' })
+			.then(function (response) {
+				return response.json().then(function (data) {
+					if (!response.ok) {
+						throw data;
+					}
+					return data;
+				});
+			})
+			.then(function (data) {
+				spotifyTracks = data.tracks || [];
+				spotify.playable = !!data.playable;
+				spotifyFilters = buildFiltersFromTracks(spotifyTracks);
+
+				renderFilters();
+				renderTracks();
+
+				if (!spotify.playable) {
+					showMessage(text.spotifyPlaybackUnavailable, 'info');
+				}
+				else {
+					showMessage('', 'info');
+				}
+			})
+			.catch(function (error) {
+				showMessage((error && error.error) || 'Unable to load that Spotify playlist.', 'error');
+			});
+	}
+
+	function renderSpotifyAuth() {
+		var html;
+
+		if (!spotify.configured) {
+			html = '<div class="rehearsal-player__spotifyName">' + escapeText(text.spotifyNotConfigured) + '</div>';
+			elements.spotifyAuth.innerHTML = html;
+			elements.spotifyPanel.classList.remove('is-visible');
+			return;
+		}
+
+		if (spotify.connected) {
+			html =
+				'<div class="rehearsal-player__spotifyName">' + escapeText(text.spotifyConnectedAs) + ' ' + escapeText(spotify.display_name) + '</div>' +
+				'<button class="rehearsal-player__button" type="button" id="rp-spotify-disconnect">' + escapeText(text.spotifyDisconnect) + '</button>';
+		}
+		else {
+			html =
+				'<div class="rehearsal-player__spotifyName">' + escapeText(text.spotifyNotConnected) + '</div>' +
+				'<button class="rehearsal-player__button is-primary" type="button" id="rp-spotify-connect">' + escapeText(text.spotifyConnect) + '</button>';
+		}
+
+		elements.spotifyAuth.innerHTML = html;
+
+		var connectBtn = document.getElementById('rp-spotify-connect');
+		if (connectBtn) {
+			connectBtn.addEventListener('click', connectSpotify);
+		}
+
+		var disconnectBtn = document.getElementById('rp-spotify-disconnect');
+		if (disconnectBtn) {
+			disconnectBtn.addEventListener('click', disconnectSpotify);
+		}
+
+		elements.spotifyPanel.classList.toggle('is-visible', activeSource === 'spotify' && !!selectedTeacherPlaylistId);
+	}
+
+	function connectSpotify() {
+		var popup = window.open(apiUrl + '?action=spotify_login', 'rpSpotifyLogin', 'width=480,height=760');
+
+		if (!popup) {
+			showMessage('Please allow pop-ups to connect Spotify.', 'error');
+			return;
+		}
+
+		var poll = window.setInterval(function () {
+			if (popup.closed) {
+				window.clearInterval(poll);
+				loadState();
+			}
+		}, 800);
+	}
+
+	function disconnectSpotify() {
+		fetch(apiUrl + '?action=spotify_logout', { method: 'POST', credentials: 'same-origin' })
+			.then(function () {
+				loadState();
+			});
+	}
+
+	function spotifySearch(query) {
+		fetch(apiUrl + '?action=spotify_search&q=' + encodeURIComponent(query), { credentials: 'same-origin' })
+			.then(function (response) { return response.json(); })
+			.then(function (data) {
+				renderSpotifyResults(data.tracks || []);
+			})
+			.catch(function () {
+				elements.spotifyResults.innerHTML = '';
+			});
+	}
+
+	function renderSpotifyResults(tracks) {
+		if (!tracks.length) {
+			elements.spotifyResults.innerHTML = '<div class="rehearsal-player__sidebarEmpty">' + escapeText(text.spotifyNoResults) + '</div>';
+			return;
+		}
+
+		var html = [];
+		for (var i = 0; i < tracks.length; i++) {
+			var track = tracks[i];
+			html.push(
+				'<div class="rehearsal-player__spotifyResult">' +
+					'<span class="rehearsal-player__spotifyResultInfo">' +
+						'<span class="rehearsal-player__spotifyResultTitle">' + escapeText(track.title) + '</span>' +
+						'<span class="rehearsal-player__spotifyResultMeta">' + escapeText(track.composer) + '</span>' +
+					'</span>' +
+					'<button class="rehearsal-player__spotifyAddButton" type="button" data-uri="' + escapeText(track.uri) + '">' + escapeText(text.spotifyAdd) + '</button>' +
+				'</div>'
+			);
+		}
+
+		elements.spotifyResults.innerHTML = html.join('');
+
+		var buttons = elements.spotifyResults.querySelectorAll('[data-uri]');
+		for (var j = 0; j < buttons.length; j++) {
+			buttons[j].addEventListener('click', function (event) {
+				addTrackToSelectedPlaylist(event.currentTarget);
+			});
+		}
+	}
+
+	function addTrackToSelectedPlaylist(button) {
+		var teacherPlaylist = findTeacherPlaylist(selectedTeacherPlaylistId);
+		if (!teacherPlaylist) {
+			showMessage(text.spotifyAddFailed, 'error');
+			return;
+		}
+
+		button.disabled = true;
+
+		fetch(apiUrl + '?action=spotify_add_track', {
+			method: 'POST',
+			credentials: 'same-origin',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ playlistId: teacherPlaylist.playlistId, trackUri: button.getAttribute('data-uri') })
+		})
+			.then(function (response) {
+				return response.json().then(function (data) {
+					if (!response.ok) {
+						throw data;
+					}
+					return data;
+				});
+			})
+			.then(function () {
+				button.textContent = text.spotifyAdded;
+
+				if (activeSource === 'spotify' && selectedTeacherPlaylistId === teacherPlaylist.id) {
+					loadSpotifyPlaylistTracks(teacherPlaylist.id);
+				}
+			})
+			.catch(function (error) {
+				button.disabled = false;
+				showMessage((error && error.error) || text.spotifyAddFailed, 'error');
+			});
 	}
 
 	function renderPills(container, values, activeValue, allLabel, emptyLabel, clickHandler) {
@@ -1093,7 +1639,9 @@
 	}
 
 	function renderFilters() {
-		renderPills(elements.composerFilters, state.filters.composers || [], selectedComposer, text.allComposers, text.noComposerFilters, function (value) {
+		var filters = activeFilters();
+
+		renderPills(elements.composerFilters, filters.composers || [], selectedComposer, text.allComposers, text.noComposerFilters, function (value) {
 			selectedComposer = value;
 			if (value) {
 				selectedComment = '';
@@ -1102,7 +1650,7 @@
 			renderTracks();
 		});
 
-		renderPills(elements.commentFilters, state.filters.comments || [], selectedComment, text.allComments, text.noCommentFilters, function (value) {
+		renderPills(elements.commentFilters, filters.comments || [], selectedComment, text.allComments, text.noCommentFilters, function (value) {
 			selectedComment = value;
 			if (value) {
 				selectedComposer = '';
@@ -1128,14 +1676,21 @@
 
 	function renderTracks() {
 		var tracks = filteredTracks();
-		var playlist = selectedPlaylist();
 		elements.tracks.className = 'rehearsal-player__tileGrid';
 
-		if (playlist) {
-				elements.trackSummary.textContent = playlist.title + ' | ' + tracks.length + ' / ' + state.track_count + ' ' + text.playlistTracks;
+		if (activeSource === 'spotify') {
+			var teacherPlaylist = findTeacherPlaylist(selectedTeacherPlaylistId);
+			var label = teacherPlaylist ? teacherPlaylist.label : '';
+			elements.trackSummary.textContent = label + ' | ' + tracks.length + ' / ' + spotifyTracks.length + ' ' + text.playlistTracks;
 		}
 		else {
-			elements.trackSummary.textContent = tracks.length + ' ' + text.tracks;
+			var playlist = selectedPlaylist();
+			if (playlist) {
+				elements.trackSummary.textContent = playlist.title + ' | ' + tracks.length + ' / ' + state.track_count + ' ' + text.playlistTracks;
+			}
+			else {
+				elements.trackSummary.textContent = tracks.length + ' ' + text.tracks;
+			}
 		}
 
 		if (!tracks.length) {
@@ -1147,15 +1702,16 @@
 		var html = [];
 		for (var i = 0; i < tracks.length; i++) {
 			var track = tracks[i];
+			var trackUrl = track.url || track.uri;
 			var metaLines = buildTrackMetaLines(track);
 			var active = (
 				(currentStatus.currentId && String(currentStatus.currentId) === String(track.id || '')) ||
-				(currentStatus.currentUrl && currentStatus.currentUrl === track.url)
+				(currentStatus.currentUrl && currentStatus.currentUrl === trackUrl)
 			) ? ' is-active' : '';
 			var densityClass = metaLines.length === 0 ? ' is-title-only' : (metaLines.length === 1 ? ' is-single-meta' : '');
 
 			html.push(
-				'<button class="rehearsal-player__tile' + active + densityClass + '" type="button" data-track-id="' + escapeText(track.id || '') + '" data-url="' + escapeText(track.url) + '" data-title="' + escapeText(track.title || text.unknownTrack) + '">' +
+				'<button class="rehearsal-player__tile' + active + densityClass + '" type="button" data-track-id="' + escapeText(track.id || '') + '" data-url="' + escapeText(trackUrl) + '" data-title="' + escapeText(track.title || text.unknownTrack) + '">' +
 					'<span class="rehearsal-player__tileTitle">' + escapeText(track.title || text.unknownTrack) + '</span>' +
 					metaLines.join('') +
 				'</button>'
@@ -1365,6 +1921,8 @@
 			})
 			.then(function (data) {
 				state = data;
+				spotify = data.spotify || spotify;
+
 				if (!selectedPlaylistId) {
 					selectedPlaylistId = data.selected_playlist_id || '';
 				}
@@ -1374,6 +1932,8 @@
 
 				renderPlayers();
 				renderPlaylists();
+				renderSidebarPlaylists();
+				renderSpotifyAuth();
 				renderFilters();
 				renderTracks();
 				refreshStatus();
@@ -1400,7 +1960,12 @@
 			if (!selectedPlayer()) {
 				showMessage(text.needPlayer, 'error');
 				return;
-		}
+			}
+
+			if (activeSource === 'spotify' && !spotify.playable) {
+				showMessage(text.spotifyPlaybackUnavailable, 'error');
+				return;
+			}
 
 		rpc(['playlist', 'play', url, title || ''])
 			.then(function () {
@@ -1554,6 +2119,31 @@
 		window.addEventListener('resize', function () {
 			syncPageOverflow();
 			refreshTrackLayout();
+		});
+
+		if (elements.spotifySearchInput) {
+			elements.spotifySearchInput.addEventListener('input', function () {
+				var query = elements.spotifySearchInput.value.trim();
+
+				if (spotifySearchTimer) {
+					window.clearTimeout(spotifySearchTimer);
+				}
+
+				if (!query) {
+					elements.spotifyResults.innerHTML = '';
+					return;
+				}
+
+				spotifySearchTimer = window.setTimeout(function () {
+					spotifySearch(query);
+				}, 400);
+			});
+		}
+
+		window.addEventListener('message', function (event) {
+			if (event.data && event.data.rehearsalPlayerSpotify) {
+				loadState();
+			}
 		});
 
 	updateStatus({
