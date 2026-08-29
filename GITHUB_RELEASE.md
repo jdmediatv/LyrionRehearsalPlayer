@@ -1,22 +1,30 @@
-# Rehearsal Player v1.1.14
+# Rehearsal Player v1.1.15
 
-Tag: `v1.1.14`
+Tag: `v1.1.15`
 
 Release title:
 
-`Rehearsal Player v1.1.14`
+`Rehearsal Player v1.1.15`
 
 Assets to upload:
 
-- `RehearsalPlayer-1.1.14.zip`
-- `RehearsalPlayer-1.1.14.sha1`
+- `RehearsalPlayer-1.1.15.zip`
+- `RehearsalPlayer-1.1.15.sha1`
 
 Suggested release body:
 
 ```md
 Rehearsal Player is a native Lyrion Music Server plugin built for rehearsal spaces.
 
-New in v1.1.14:
+New in v1.1.15:
+
+- Spotify track playback is now recognized when the community "SpotOn"
+  plugin is installed and enabled, not just "Spotty". Previously the
+  Tracks panel would show the "install a Spotify playback plugin"
+  message and refuse to play Spotify tracks even with SpotOn active
+  and connected, since the plugin only checked for Spotty by name.
+
+Also included from 1.1.14:
 
 - Fixed "redirect_uri: Unsafe" errors when connecting Spotify from the
   Settings page. The saved Bridge Page URL had an invisible stray
@@ -101,15 +109,15 @@ Also included from prior releases:
 
 Install options:
 
-- Manual install: download `RehearsalPlayer-1.1.14.zip` and extract the `RehearsalPlayer` folder into your LMS plugins directory
+- Manual install: download `RehearsalPlayer-1.1.15.zip` and extract the `RehearsalPlayer` folder into your LMS plugins directory
 - Repository install: add the hosted `repo.xml` URL to LMS plugin repositories (existing installs using this method will offer the update automatically)
 ```
 
 Publish checklist:
 
-1. Commit `repo.xml`, `release-assets/RehearsalPlayer-1.1.14.zip`, and `release-assets/RehearsalPlayer-1.1.14.sha1` to `jdmediatv/LyrionRehearsalPlayer` main.
-2. Create release tag `v1.1.14`.
-3. Upload `RehearsalPlayer-1.1.14.zip` and `RehearsalPlayer-1.1.14.sha1` as release assets (optional - the raw `release-assets/` copy in the repo is what `repo.xml` actually points to and is sufficient for installs to update).
+1. Commit `repo.xml`, `release-assets/RehearsalPlayer-1.1.15.zip`, and `release-assets/RehearsalPlayer-1.1.15.sha1` to `jdmediatv/LyrionRehearsalPlayer` main.
+2. Create release tag `v1.1.15`.
+3. Upload `RehearsalPlayer-1.1.15.zip` and `RehearsalPlayer-1.1.15.sha1` as release assets (optional - the raw `release-assets/` copy in the repo is what `repo.xml` actually points to and is sufficient for installs to update).
 4. Test the final asset URL from `repo.xml`.
 5. Confirm existing installs pick up the update: Settings -> Plugins in LMS will offer it if "Update plugins automatically" is off, or install it automatically on next restart if that option is on.
 

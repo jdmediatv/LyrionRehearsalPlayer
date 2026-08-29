@@ -8,15 +8,15 @@ https://raw.githubusercontent.com/jdmediatv/LyrionRehearsalPlayer/main/repo.xml
 		<title lang="EN">Jazzart Plugins</title>
 	</details>
 	<plugins>
-		<plugin name="RehearsalPlayer" version="1.1.14" minTarget="7.9" maxTarget="*">
+		<plugin name="RehearsalPlayer" version="1.1.15" minTarget="7.9" maxTarget="*">
 			<title lang="EN">Rehearsal Player</title>
 			<desc lang="EN">Dark, playlist-driven rehearsal playback with tutor/class filters, artwork playlist selection, large transport controls, quick jump presets, and a Spotify-backed teacher playlist section.</desc>
 			<category>tools</category>
-			<changes lang="EN">Fixed "redirect_uri: Unsafe" errors when connecting Spotify, caused by an invisible stray character (e.g. a pasted non-breaking space) in the saved Bridge Page URL. The URL is now cleaned automatically when used, and cleaned more thoroughly when saved - no need to retype it.</changes>
+			<changes lang="EN">Spotify track playback is now recognized when the community "SpotOn" plugin is installed and enabled, not just "Spotty" - previously the Tracks panel would show the "install a Spotify playback plugin" message even with SpotOn active and connected.</changes>
 			<creator>Jazzart</creator>
 			<link>https://github.com/jdmediatv/LyrionRehearsalPlayer</link>
-			<url>https://raw.githubusercontent.com/jdmediatv/LyrionRehearsalPlayer/main/release-assets/RehearsalPlayer-1.1.14.zip</url>
-			<sha>fdb32e0f4c5cd8f411c26793401e63e03104db44</sha>
+			<url>https://raw.githubusercontent.com/jdmediatv/LyrionRehearsalPlayer/main/release-assets/RehearsalPlayer-1.1.15.zip</url>
+			<sha>9504d2a569f229b6abc6321f1553a7a05ebccf44</sha>
 		</plugin>
 	</plugins>
 </extensions>

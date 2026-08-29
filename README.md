@@ -1,6 +1,6 @@
 # Rehearsal Player
 
-Native Lyrion Music Server plugin for rehearsal spaces, with playlist artwork selection, tile-based track launching, metadata filters, large transport controls, player volume control, and (as of 1.1.14) a Spotify-backed teacher playlist section.
+Native Lyrion Music Server plugin for rehearsal spaces, with playlist artwork selection, tile-based track launching, metadata filters, large transport controls, player volume control, and (as of 1.1.15) a Spotify-backed teacher playlist section.
 
 ## Features
 
@@ -40,15 +40,15 @@ each one links to from **Settings &rarr; Plugins &rarr; Rehearsal Player**
 in Lyrion.
 
 Playing a Spotify track's audio (rather than just browsing/searching/
-adding) additionally needs a Spotify playback plugin such as the
-community **Spotty** plugin installed and configured with a Spotify
-Premium account - see `SPOTIFY_SETUP.md` for details.
+adding) additionally needs a Spotify playback plugin - either the
+community **Spotty** or **SpotOn** plugin - installed and configured
+with a Spotify Premium account - see `SPOTIFY_SETUP.md` for details.
 
 ## Install
 
 ### Manual install
 
-1. Download `RehearsalPlayer-1.1.14.zip`.
+1. Download `RehearsalPlayer-1.1.15.zip`.
 2. Extract it into your LMS plugins directory so the final path is:
 
    `Plugins/RehearsalPlayer/`
@@ -70,8 +70,8 @@ Premium account - see `SPOTIFY_SETUP.md` for details.
 
 ## Repository Contents
 
-- `RehearsalPlayer-1.1.14.zip`: installable plugin package
-- `RehearsalPlayer-1.1.14.sha1`: SHA1 checksum for LMS repository installs
+- `RehearsalPlayer-1.1.15.zip`: installable plugin package
+- `RehearsalPlayer-1.1.15.sha1`: SHA1 checksum for LMS repository installs
 - `repo.xml`: Lyrion repository definition
 - `GITHUB_RELEASE.md`: release text and publish checklist
 - `SPOTIFY_SETUP.md`: step-by-step Spotify integration setup guide
@@ -84,11 +84,11 @@ Premium account - see `SPOTIFY_SETUP.md` for details.
 
    `https://raw.githubusercontent.com/jdmediatv/LyrionRehearsalPlayer/main/repo.xml`
 
-3. Create GitHub release tag `v1.1.14`.
+3. Create GitHub release tag `v1.1.15`.
 4. Upload:
 
-   - `RehearsalPlayer-1.1.14.zip`
-   - `RehearsalPlayer-1.1.14.sha1`
+   - `RehearsalPlayer-1.1.15.zip`
+   - `RehearsalPlayer-1.1.15.sha1`
 
 5. Test the release asset URL in `repo.xml`.
 6. Test the raw `repo.xml` URL from a Lyrion install.

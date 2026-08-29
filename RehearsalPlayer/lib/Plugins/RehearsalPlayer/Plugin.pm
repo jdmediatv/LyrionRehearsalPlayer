@@ -509,16 +509,27 @@ sub _syncTeacherPlaylistsFromSpotify {
 	}, $cbErr);
 }
 
-# True when a Spotify-capable audio source plugin (e.g. the community
-# "Spotty" plugin) is installed and enabled, so a Squeezebox player can
-# actually stream a spotify:track:... URI the same way it streams a local
-# file:// URL. Without one, browsing/search/add-to-playlist still work
-# (those only need the Spotify Web API), but in-app playback cannot.
+# True when a Spotify-capable audio source plugin is installed and enabled,
+# so a Squeezebox player can actually stream a spotify:track:... URI the same
+# way it streams a local file:// URL. Without one, browsing/search/add-to-
+# playlist still work (those only need the Spotify Web API), but in-app
+# playback cannot. Checks each known community plugin that registers a
+# "spotify:" protocol handler - the original "Spotty" plugin, and "SpotOn",
+# a newer alternative that (unlike recent Spotty releases) still supports
+# Spotify Connect.
+my @SPOTIFY_PLAYBACK_PLUGINS = (
+	'Plugins::Spotty::Plugin',
+	'Plugins::SpotOn::Plugin',
+);
+
 sub _spotifyPlaybackAvailable {
-	my $enabled = eval {
-		Slim::Utils::PluginManager->isEnabled('Plugins::Spotty::Plugin');
-	};
-	return $enabled ? 1 : 0;
+	for my $plugin (@SPOTIFY_PLAYBACK_PLUGINS) {
+		my $enabled = eval {
+			Slim::Utils::PluginManager->isEnabled($plugin);
+		};
+		return 1 if $enabled;
+	}
+	return 0;
 }
 
 # ---------------------------------------------------------------------------
