@@ -71,7 +71,28 @@ sub clientSecret {
 }
 
 sub bridgeUrl {
-	return $prefs->get('spotifyBridgeUrl') || '';
+	return _cleanUrl($prefs->get('spotifyBridgeUrl'));
+}
+
+# Defensively strips whitespace - including invisible characters like a
+# non-breaking space (U+00A0) or a zero-width space (U+200B) that a
+# copy-paste from a browser address bar or a word processor can leave in a
+# pasted URL - from a stored URL pref. A single leading space in the
+# redirect_uri is enough for Spotify to reject the whole authorize request
+# with "redirect_uri: Unsafe" (it must match the registered Redirect URI
+# byte-for-byte), and Perl's \s doesn't match U+00A0/U+200B, so a plain
+# s/^\s+// wasn't catching it. Applied at read-time (not just on save) so a
+# value that got saved with stray whitespace before this fix existed heals
+# itself the moment the plugin restarts, without the admin having to
+# re-type anything in Settings.
+sub _cleanUrl {
+	my ($value) = @_;
+	return '' unless defined $value;
+
+	$value =~ s/^[\s\x{00A0}\x{200B}\x{FEFF}]+//;
+	$value =~ s/[\s\x{00A0}\x{200B}\x{FEFF}]+$//;
+
+	return $value;
 }
 
 sub isConfigured {

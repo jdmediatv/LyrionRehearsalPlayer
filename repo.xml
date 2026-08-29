@@ -8,15 +8,15 @@ https://raw.githubusercontent.com/jdmediatv/LyrionRehearsalPlayer/main/repo.xml
 		<title lang="EN">Jazzart Plugins</title>
 	</details>
 	<plugins>
-		<plugin name="RehearsalPlayer" version="1.1.13" minTarget="7.9" maxTarget="*">
+		<plugin name="RehearsalPlayer" version="1.1.14" minTarget="7.9" maxTarget="*">
 			<title lang="EN">Rehearsal Player</title>
 			<desc lang="EN">Dark, playlist-driven rehearsal playback with tutor/class filters, artwork playlist selection, large transport controls, quick jump presets, and a Spotify-backed teacher playlist section.</desc>
 			<category>tools</category>
-			<changes lang="EN">Fixed a broken image icon where the Jazzart logo should be - the logo is now embedded directly in the page instead of loaded as a separate file, so it always displays regardless of how the LMS server serves static plugin assets.</changes>
+			<changes lang="EN">Fixed "redirect_uri: Unsafe" errors when connecting Spotify, caused by an invisible stray character (e.g. a pasted non-breaking space) in the saved Bridge Page URL. The URL is now cleaned automatically when used, and cleaned more thoroughly when saved - no need to retype it.</changes>
 			<creator>Jazzart</creator>
 			<link>https://github.com/jdmediatv/LyrionRehearsalPlayer</link>
-			<url>https://raw.githubusercontent.com/jdmediatv/LyrionRehearsalPlayer/main/release-assets/RehearsalPlayer-1.1.13.zip</url>
-			<sha>d1fd4bd8c5c487f85d50597076cbb488c0675367</sha>
+			<url>https://raw.githubusercontent.com/jdmediatv/LyrionRehearsalPlayer/main/release-assets/RehearsalPlayer-1.1.14.zip</url>
+			<sha>fdb32e0f4c5cd8f411c26793401e63e03104db44</sha>
 		</plugin>
 	</plugins>
 </extensions>

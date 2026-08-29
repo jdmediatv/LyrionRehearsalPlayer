@@ -59,8 +59,14 @@ sub _trim {
 	my ($value) = @_;
 	return '' unless defined $value;
 
-	$value =~ s/^\s+//;
-	$value =~ s/\s+$//;
+	# Strip ordinary whitespace plus invisible Unicode whitespace (non-
+	# breaking space, zero-width space, BOM) that a copy-paste into these
+	# fields can leave behind - Perl's \s alone doesn't catch those, and a
+	# stray leading/trailing character here is exactly what broke the
+	# Spotify Bridge Page URL field (Spotify's redirect_uri match is
+	# byte-for-byte, so one invisible character makes it "Unsafe").
+	$value =~ s/^[\s\x{00A0}\x{200B}\x{FEFF}]+//;
+	$value =~ s/[\s\x{00A0}\x{200B}\x{FEFF}]+$//;
 
 	return $value;
 }
